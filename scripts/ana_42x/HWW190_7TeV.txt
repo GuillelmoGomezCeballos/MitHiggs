@@ -1,0 +1,7 @@
+s11-h190ww2l-gf-v11-pu         all_noskim
+s11-h190wwlt-gf-v11-pu         all_noskim
+s11-h190ww2t-gf-v11-pu         all_noskim
+s11-h190ww2l-vbf-v11-pu        all_noskim
+s11-h190wwlt-vbf-v11-pu        all_noskim
+s11-h190ww2t-vbf-v11-pu        all_noskim
+s11-h190ww2l-vtth-v11-pu       all_noskim

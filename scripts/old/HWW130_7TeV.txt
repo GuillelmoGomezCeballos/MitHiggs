@@ -1,0 +1,7 @@
+f10-h130ww2l-gf-z2-v12         all_noskim
+f10-h130wwlt-gf-z2-v12         all_noskim
+f10-h130wwtt-gf-z2-v12         all_noskim
+f10-h130ww2l-wbf-z2-v12        all_noskim
+f10-h130wwlt-wbf-z2-v12        all_noskim
+f10-h130wwtt-wbf-z2-v12        all_noskim
+f10-h130ww-vh-z2-v12	       all_noskim

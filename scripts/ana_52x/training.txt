@@ -1,0 +1,5 @@
+s12-tt2l-powheg-v9 all_noskim 
+s12-wtop-dr-v9    all_noskim
+s12-wtopb-dr-v9    all_noskim
+s12-ggww2l-v9    all_noskim
+s12-wwj-v9    all_noskim

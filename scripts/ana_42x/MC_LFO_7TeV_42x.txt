@@ -1,0 +1,16 @@
+s11-wwj-v11-pu       	 fake_all_noskim 
+s11-ggww2l-v11-pu    	 fake_all_noskim 
+s11-tt2l-powheg-v11-pu   fake_all_noskim 
+s11-zz4l-mg-v11-pu       fake_all_noskim	       
+s11-zz2l2q-mg-v11-pu     fake_all_noskim	       
+s11-zz2l2n-mg-v11-pu     fake_all_noskim	       
+s11-wz3l-mg-v11-pu       fake_all_noskim 
+s11-wz2l2q-mg-v11-pu     fake_all_noskim 
+s11-wtop-powheg-v11-pu   fake_all_noskim 
+s11-wtopb-powheg-v11-pu  fake_all_noskim 
+s11-wtg-v11-pu  	 fake_all_noskim
+s11-wmg-v11-pu  	 fake_all_noskim
+s11-weg-v11-pu  	 fake_all_noskim
+s11-zttg-v11-pu 	 fake_all_noskim
+s11-zmmg-v11-pu 	 fake_all_noskim
+s11-zeeg-v11-pu 	 fake_all_noskim

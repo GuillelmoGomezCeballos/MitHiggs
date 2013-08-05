@@ -1,0 +1,4 @@
+s12-h800ww2l-gf-v7a  all_noskim
+s12-h800ww2l-vbf-v7a all_noskim
+s12-h800ww2l-gf-v7a  fake_all_noskim
+s12-h800ww2l-vbf-v7a fake_all_noskim

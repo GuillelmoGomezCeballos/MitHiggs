@@ -1,0 +1,8 @@
+# -*- Makefile -*-
+# $Id: BuildFile,v 1.5 2011/07/22 15:57:35 sixie Exp $
+
+<use name=MitPhysics/FakeMods>
+<use name=MitPhysics/Mods>
+<use name=MitPhysics/FakeMods>
+#<flags CXXFLAGS="-g">
+

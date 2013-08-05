@@ -1,0 +1,6 @@
+f10-h220ww2l-gf-z2-v12         all_noskim
+f10-h220wwlt-gf-z2-v12         all_noskim
+f10-h220wwtt-gf-z2-v12         all_noskim
+f10-h220ww2l-wbf-z2-v12        all_noskim
+f10-h220wwlt-wbf-z2-v12        all_noskim
+f10-h220wwtt-wbf-z2-v12        all_noskim

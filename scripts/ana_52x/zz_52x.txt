@@ -1,0 +1,6 @@
+s12-zz2l2n-v9    all_noskim
+s12-zz2l2q-v9    all_noskim
+s12-zz4l-v9      all_noskim
+s12-zz2l2n-v9    fake_all_noskim
+s12-zz2l2q-v9    fake_all_noskim
+s12-zz4l-v9      fake_all_noskim

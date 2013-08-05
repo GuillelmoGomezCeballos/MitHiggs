@@ -1,0 +1,6 @@
+s12-tt2l-powheg-v7a all_noskim 
+s12-wtop-dr-v7a    all_noskim
+s12-wtopb-dr-v7a    all_noskim
+s12-ggww2l-v7a    all_noskim
+s12-wwj-v7a    all_noskim
+s12-wglg-v7a   lgamma_all_noskim

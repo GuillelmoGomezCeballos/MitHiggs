@@ -1,0 +1,12 @@
+s12-zz4m-powheg-v7a    all_noskim
+s12-zz4e-powheg-v7a    all_noskim
+s12-zz4t-powheg-v7a    all_noskim
+s12-zz2e2m-powheg-v7a    all_noskim
+s12-zz2e2t-powheg-v7a    all_noskim
+s12-zz2m2t-powheg-v7a    all_noskim
+s12-zz4m-powheg-v7a    fake_all_noskim
+s12-zz4e-powheg-v7a    fake_all_noskim
+s12-zz4t-powheg-v7a    fake_all_noskim
+s12-zz2e2m-powheg-v7a    fake_all_noskim
+s12-zz2e2t-powheg-v7a    fake_all_noskim
+s12-zz2m2t-powheg-v7a    fake_all_noskim

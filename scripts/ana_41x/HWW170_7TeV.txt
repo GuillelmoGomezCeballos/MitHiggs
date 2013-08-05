@@ -1,0 +1,7 @@
+p11-h170ww2l-gf-v1g1-pu         all_noskim
+p11-h170wwlt-gf-v1g1-pu         all_noskim
+p11-h170ww2t-gf-v1g1-pu         all_noskim
+p11-h170ww2l-vbf-v1g1-pu        all_noskim
+p11-h170wwlt-vbf-v1g1-pu        all_noskim
+p11-h170ww2t-vbf-v1g1-pu        all_noskim
+p11-h170ww2l-vtth-v1g1-pu	all_noskim

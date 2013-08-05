@@ -1,0 +1,12 @@
+f10-vv-mg-z2-v12-pu            all_noskim
+f10-ggww-z2-v12-pu             all_noskim
+f10-wz-z2-v12-pu               all_noskim
+f10-zz-z2-v12-pu               all_noskim
+f10-tt2l-powheg-z2-v12-pu      all_noskim
+f10-wm-z2-v12-pu   	       all_noskim
+f10-we-z2-v12-pu   	       all_noskim
+f10-wt-z2-v12-pu   	       all_noskim
+f10-zll-filter-z2-v12-pu       all_noskim
+f10-stop-mg-z2-v12-pu  	       all_noskim
+f10-ttop-mg-z2-v12-pu  	       all_noskim
+f10-wtop-mg-z2-v12-pu  	       all_noskim

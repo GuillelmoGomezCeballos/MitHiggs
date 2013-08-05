@@ -1,0 +1,7 @@
+s11-h160ww2l-vbf-v11-pu        all_noskim
+s11-h160wwlt-vbf-v11-pu        all_noskim
+s11-h160ww2t-vbf-v11-pu        all_noskim
+s11-h160ww2l-vtth-v11-pu       all_noskim
+s11-h160ww2l-gf-v11-pu         all_noskim
+s11-h160wwlt-gf-v11-pu         all_noskim
+s11-h160ww2t-gf-v11-pu         all_noskim

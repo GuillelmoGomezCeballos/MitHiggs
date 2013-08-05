@@ -1,0 +1,6 @@
+s12-wglmm-v7a    all_noskim
+s12-wglee-v7a    all_noskim
+s12-wgltt-v7a    all_noskim
+s12-wglmm-v7a    fake_all_noskim
+s12-wglee-v7a    fake_all_noskim
+s12-wgltt-v7a    fake_all_noskim

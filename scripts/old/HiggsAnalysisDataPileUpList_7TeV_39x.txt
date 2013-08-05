@@ -1,0 +1,16 @@
+w10-vv-mg-v8-pu 	       all_noskim
+w10-ggww-z2-v8-pu    	       all_noskim
+w10-vg-mg-z2-v8-pu             all_noskim
+data_fake                      all_noskim
+w10-tt-mg-z2-v8-pu	       all_noskim
+w10-wz-z2-v8-pu 	       all_noskim
+w10-zz-z2-v8-pu 	       all_noskim
+w10-zee-powheg-c10-v8-pu       all_noskim
+w10-zee1020-powheg-c10-v8-pu   all_noskim
+w10-zmm-powheg-c10-v8-pu       all_noskim
+w10-zmm1020-powheg-c10-v8-pu   all_noskim
+w10-ztt-powheg-c10-v8-pu       all_noskim
+w10-ztt1020-powheg-c10-v8-pu   all_noskim
+w10-stop-mg-z2-v8-pu	       all_noskim
+w10-ttop-mg-z2-v8-pu	       all_noskim
+w10-wtop-mg-z2-v8-pu	       all_noskim

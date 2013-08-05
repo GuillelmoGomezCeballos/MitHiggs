@@ -1,0 +1,4 @@
+s11-wtop-ds-powheg-v11-pu  all_noskim
+s11-wtopb-ds-powheg-v11-pu  all_noskim
+s11-wtop-ds-powheg-v11-pu  fake_all_noskim
+s11-wtopb-ds-powheg-v11-pu  fake_all_noskim

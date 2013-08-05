@@ -1,0 +1,9 @@
+s09-ggwwll-7-mc3               all_noskim
+s09-vvjets-mg-7-mc3          all_noskim
+s09-ttbar-mg-7-mc3	     all_noskim
+s09-wjets-sherpa-7-mc3       all_noskim   
+s09-zjets-sherpa-7-mc3       all_noskim    
+s09-zjets1050-sherpa-7-mc3   all_noskim
+s09-stop-mg-7-mc3	     all_noskim
+s09-ttop-mg-7-mc3	     all_noskim
+s09-wtop-mg-7-mc3	     all_noskim

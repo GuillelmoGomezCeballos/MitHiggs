@@ -1,0 +1,7 @@
+p11-h140ww2l-gf-v1g1-pu         all_noskim
+p11-h140wwlt-gf-v1g1-pu         all_noskim
+p11-h140ww2t-gf-v1g1-pu         all_noskim
+p11-h140ww2l-vbf-v1g1-pu        all_noskim
+p11-h140wwlt-vbf-v1g1-pu        all_noskim
+p11-h140ww2t-vbf-v1g1-pu        all_noskim
+p11-h140ww2l-vtth-v1g1-pu	all_noskim

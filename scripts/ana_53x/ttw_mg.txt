@@ -1,0 +1,2 @@
+s12-ttw-v7a	   all_noskim
+s12-ttw-v7a   fake_all_noskim

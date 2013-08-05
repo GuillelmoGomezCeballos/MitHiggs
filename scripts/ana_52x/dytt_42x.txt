@@ -1,0 +1,4 @@
+f11-zttm1020-v14b-pu      all_noskim
+f11-zttm20-powheg-v14b-pu all_noskim
+f11-zttm1020-v14b-pu      fake_all_noskim
+f11-zttm20-powheg-v14b-pu fake_all_noskim

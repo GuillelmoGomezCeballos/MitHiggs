@@ -1,0 +1,7 @@
+f10-h350ww2l-gf-z2-v12         all_noskim
+f10-h350wwlt-gf-z2-v12         all_noskim
+f10-h350wwtt-gf-z2-v12         all_noskim
+f10-h350ww2l-wbf-z2-v12        all_noskim
+f10-h350wwlt-wbf-z2-v12        all_noskim
+f10-h350wwtt-wbf-z2-v12        all_noskim
+f10-h350ww-vh-z2-v12	       all_noskim

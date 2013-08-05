@@ -1,0 +1,6 @@
+s11-wtg-v11-pu       lgamma_all_noskim
+s11-wmg-v11-pu	     lgamma_all_noskim
+s11-weg-v11-pu	     lgamma_all_noskim
+s11-zttg-v11-pu      lgamma_all_noskim
+s11-zmmg-v11-pu      lgamma_all_noskim
+s11-zeeg-v11-pu      lgamma_all_noskim

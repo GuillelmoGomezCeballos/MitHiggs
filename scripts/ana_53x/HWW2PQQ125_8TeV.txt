@@ -1,0 +1,6 @@
+s12-x125ww2l-2pqq-v7a  all_noskim
+s12-x125wwlt-2pqq-v7a  all_noskim
+s12-x125ww2t-2pqq-v7a  all_noskim
+s12-x125ww2l-2pqq-v7a  fake_all_noskim
+s12-x125wwlt-2pqq-v7a  fake_all_noskim
+s12-x125ww2t-2pqq-v7a  fake_all_noskim

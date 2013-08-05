@@ -1,0 +1,4 @@
+s12-wz3ln-v7a    all_noskim
+s12-wz2q2l-v7a   all_noskim
+s12-wz3ln-v7a    fake_all_noskim
+s12-wz2q2l-v7a   fake_all_noskim

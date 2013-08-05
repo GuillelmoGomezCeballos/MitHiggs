@@ -1,0 +1,4 @@
+s12-ww2m-v7a all_noskim
+s12-ww2p-v7a all_noskim
+s12-ww2m-v7a fake_all_noskim
+s12-ww2p-v7a fake_all_noskim

@@ -1,0 +1,11 @@
+p11-ww2l-v1g1-pu     		all_noskim
+p11-ggww-v1g1-pu     		all_noskim
+p11-zz-v1g1-pu       		all_noskim
+p11-wz-v1g1-pu       		all_noskim
+p11-stop-v1g1-pu     		all_noskim
+p11-ttop-v1g1-pu     		all_noskim
+p11-wtop-v1g1-pu     		all_noskim
+p11-ttj-powheg-v1g1-pu          all_noskim
+p11-zll1050-d6t-v1g1-pu         all_noskim
+p11-zll50-d6t-v1g1-pu           all_noskim
+w10-wjets-z2-v8-pu11-2l         all_noskim

@@ -1,0 +1,11 @@
+f11-zz4l-mg-v14b-pu            	  all_noskim
+f11-zz2l2q-mg-v14b-pu  		  all_noskim
+f11-zz2l2n-mg-v14b-pu  		  all_noskim
+f11-wz-v14b-pu                    all_noskim		       
+f11-zz4l-mg-v14b-pu          fake_all_noskim
+f11-zz2l2q-mg-v14b-pu  	     fake_all_noskim
+f11-zz2l2n-mg-v14b-pu  	     fake_all_noskim
+f11-wz-v14b-pu               fake_all_noskim		       
+f11-tt2l-powheg-v14b-pu      fake_all_noskim
+f11-wtop-powheg-v14b-pu      fake_all_noskim
+f11-wtopb-powheg-v14b-pu     fake_all_noskim

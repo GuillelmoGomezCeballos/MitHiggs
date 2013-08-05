@@ -1,0 +1,13 @@
+s11-wtop-ds-powheg-v11-pu   all_noskim      
+s11-wtopb-ds-powheg-v11-pu  all_noskim     
+s11-ttj-v11-pu              all_noskim
+s11-ww-mcatnlo-v11-pu       all_noskim
+s11-wwup-mcatnlo-v11-pu     all_noskim
+s11-wwdown-mcatnlo-v11-pu   all_noskim
+s11-wtg-v11-pu       lgamma_all_noskim
+s11-wmg-v11-pu	     lgamma_all_noskim
+s11-weg-v11-pu	     lgamma_all_noskim
+s11-zttg-v11-pu      lgamma_all_noskim
+s11-zmmg-v11-pu      lgamma_all_noskim
+s11-zeeg-v11-pu      lgamma_all_noskim
+s11-wjets-v11-pu       fake_all_noskim

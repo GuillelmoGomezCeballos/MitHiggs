@@ -1,0 +1,14 @@
+f11-h120ww2l-gf-v14b-bp         all_noskim
+f11-h120wwlt-gf-v14b-bp         all_noskim
+f11-h120ww2t-gf-v14b-bp         all_noskim
+f11-h120ww2l-vbf-v14b-bp        all_noskim
+f11-h120wwlt-vbf-v14b-bp        all_noskim
+f11-h120ww2t-vbf-v14b-bp        all_noskim
+f11-h120ww2l-gf-v14b-bp         fake_all_noskim
+f11-h120wwlt-gf-v14b-bp         fake_all_noskim
+f11-h120ww2t-gf-v14b-bp         fake_all_noskim
+f11-h120ww2l-vbf-v14b-bp        fake_all_noskim
+f11-h120wwlt-vbf-v14b-bp        fake_all_noskim
+f11-h120ww2t-vbf-v14b-bp        fake_all_noskim
+s11-h120ww-wh3l-v14b-bp      all_noskim
+s11-h120ww-wh3l-v14b-bp fake_all_noskim

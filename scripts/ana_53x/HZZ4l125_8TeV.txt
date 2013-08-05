@@ -1,0 +1,6 @@
+s12-h125zz4l-gf-v7a   all_noskim
+s12-h125zz4l-vbf-v7a  all_noskim
+s12-h125zz4l-vtth-v7a all_noskim
+s12-h125zz4l-gf-v7a   fake_all_noskim
+s12-h125zz4l-vbf-v7a  fake_all_noskim
+s12-h125zz4l-vtth-v7a fake_all_noskim
