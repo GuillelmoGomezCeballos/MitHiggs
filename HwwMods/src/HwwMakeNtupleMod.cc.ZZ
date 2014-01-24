@@ -1,4 +1,4 @@
-// $Id: HwwMakeNtupleMod.cc,v 1.142 2013/11/19 17:32:25 ceballos Exp $
+// $Id: HwwMakeNtupleMod.cc,v 1.140 2013/10/12 07:02:49 ceballos Exp $
 
 #include "MitHiggs/HwwMods/interface/HwwMakeNtupleMod.h"
 #include <TH1D.h>
@@ -84,9 +84,6 @@ HwwMakeNtupleMod::HwwMakeNtupleMod(const char *name, const char *title) :
   fMVAElVersion(0),
   fMVAMuVersion(0),
   fTheRhoType(RhoUtilities::CMS_RHO_RHOKT6PFJETS),
-  fAddLheWeights(kFALSE),
-  fLheWeightsName("LheWeights"),
-  fLheWeights(0),
   fNEventsSelected(0)
 {
   // Constructor.
@@ -119,8 +116,6 @@ void HwwMakeNtupleMod::Process()
   if (!fIsData) LoadBranch(Names::gkPileupInfoBrn);
   if (!fIsData) LoadBranch(Names::gkMCPartBrn);
   LoadEventObject(fPileupEnergyDensityName, fPileupEnergyDensity);
-  LoadBranch(fTrackName);
-  if(fAddLheWeights) LoadBranch(fLheWeightsName);
 
   //************************************************************************************************
   //Get NNLO Weight
@@ -145,12 +140,14 @@ void HwwMakeNtupleMod::Process()
   //************************************************************************************************
   //Obtain MC Particle Collections
   //************************************************************************************************
+  MCParticleOArr *GenNeutrinos = 0;
   MCParticleOArr *GenLeptons   = 0;
   MCParticleOArr *GenTaus      = 0;
   MCParticleOArr *GenPhotons   = 0;
   ObjArray<MCParticle> *GenLeptonsAndTaus = new ObjArray<MCParticle>;
   MCParticleCol *GenBosons   = 0;    
   if(fIsData == kFALSE){
+    GenNeutrinos = GetObjThisEvt<MCParticleOArr>(ModNames::gkMCNeutrinosName);
     GenLeptons   = GetObjThisEvt<MCParticleOArr>(ModNames::gkMCLeptonsName);
     GenTaus      = GetObjThisEvt<MCParticleOArr>(ModNames::gkMCTausName);
     GenPhotons   = GetObjThisEvt<MCParticleOArr>(ModNames::gkMCPhotonsName);
@@ -346,25 +343,12 @@ void HwwMakeNtupleMod::Process()
     std::vector<double> leptonsMVA;
     std::vector<double> lepDetEta;
     std::vector<int> leptonsMVAPass;
-    std::vector<bool> leptonsAgreeQ;
     double zDiffMax = 0.0;
-    bool hasZCand = kFALSE;
 
     ObjArray<Muon> *DirtyMuons = new ObjArray<Muon>;
     for (UInt_t i=0; i<fMuons->GetEntries(); i++) {
       const Muon *mu = fMuons->At(i);
-      for (UInt_t nj=i+1; nj<fMuons->GetEntries(); nj++) {
-        const Muon *mu2 = fMuons->At(nj);
-        if(mu->Charge() != mu2->Charge()){
-	  CompositeParticle looseDilepton;
-	  looseDilepton.AddDaughter(mu);
-	  looseDilepton.AddDaughter(mu2);
-	  double zDiff = TMath::Abs(mu ->BestTrk()->DzCorrected(*fVertices->At(0))-
-	                            mu2->BestTrk()->DzCorrected(*fVertices->At(0)));
-	  if(mu->Pt() > 10 && mu2->Pt() > 10 &&  zDiff < 0.1 &&
-	     TMath::Abs(looseDilepton.Mass()-91.1876) < 15.0) hasZCand = kTRUE;
-	}
-      }
+
       bool isCleanMuon = kFALSE;
       for (UInt_t j=0; j<CleanMuons->GetEntries(); j++) {
         if(fMuons->At(i) == CleanMuons->At(j) &&
@@ -376,21 +360,6 @@ void HwwMakeNtupleMod::Process()
     }
     DirtyMuons->Sort();
 
-    for (UInt_t i=0; i<fElectrons->GetEntries(); i++) {
-      const Electron *el = fElectrons->At(i);
-      for (UInt_t nj=i+1; nj<fElectrons->GetEntries(); nj++) {
-        const Electron *el2 = fElectrons->At(nj);
-        if(el->Charge() != el2->Charge()){
-	  CompositeParticle looseDilepton;
-	  looseDilepton.AddDaughter(el);
-	  looseDilepton.AddDaughter(el2);
-	  double zDiff = TMath::Abs(el ->GsfTrk()->DzCorrected(*fVertices->At(0))-
-	                            el2->GsfTrk()->DzCorrected(*fVertices->At(0)));
-	  if(el->Pt() > 10 && el2->Pt() > 10 && zDiff < 0.1 &&
-	     TMath::Abs(looseDilepton.Mass()-91.1876) < 15.0) hasZCand = kTRUE;
-	}
-      }
-    }
     // Make lepton vector from muons and electrons
     for (UInt_t j=0; j<CleanMuons->GetEntries(); j++) {
       double pDz = CleanMuons->At(j)->BestTrk()->DzCorrected(*fVertices->At(0));
@@ -404,13 +373,32 @@ void HwwMakeNtupleMod::Process()
 
     // New MET
     PFMet* pfMet = new PFMet();
+    pfMet->SetMex(pfMetStatic->Px());
+    pfMet->SetMey(pfMetStatic->Py());
+    pfMet->SetSumEt(pfMetStatic->SumEt());
+    pfMet->SetPFMetSig(pfMetStatic->PFMetSig());
+    Bool_t isPassMET = kTRUE;
+    if(fIs42x == kTRUE) {
+      isPassMET = pfMet->Pt() > 45.;
+    } else {
+      double metx = pfMet->Px();
+      double mety = pfMet->Py();
+      if (fIsData == kTRUE) {
+        metx -= (+0.035912 + 0.326549*fVertices->GetEntries());
+        mety -= (-0.120266 - 0.225262*fVertices->GetEntries());
+      } else {
+        metx -= (+0.108857 + 0.064336*fVertices->GetEntries());
+        mety -= (+0.086738 - 0.069474*fVertices->GetEntries());
+      }
+      isPassMET = sqrt(metx*metx + mety*mety) > 45.;
+    }
 
     // Preselection requirements
     if ( (!fFillPhotonTemplate && fFakeRatePredictionType != 3 && leptons->GetEntries() >= 2 && leptons->At(0)->Pt() > 20 &&
 	   (
-	    (leptons->GetEntries() == 2)
-	    ||
-	    (leptons->GetEntries() == 3)
+	    (leptons->GetEntries() == 2 && isPassMET == kTRUE)
+	    //||
+	    //(leptons->GetEntries() == 3)
 	    )
 	 )
 	   || 
@@ -431,18 +419,9 @@ void HwwMakeNtupleMod::Process()
       // *****************
       for (UInt_t j=0;j<leptons->GetEntries() ; j++) {
   	Double_t MVAValue = -3.0; Int_t MVAPass = 0; Double_t DetEta = -900.0;
-	leptonsAgreeQ.push_back(kTRUE);
       	if     (leptons->At(j)->ObjType() == kElectron) {
       	  for (UInt_t k=0;k<CleanElectrons->GetEntries() ; k++) {
       	    if (leptons->At(j) == CleanElectrons->At(k)) {
-	      // Check if Q agree
-	      if(CleanElectrons->At(k)->GsfTrk()           && CleanElectrons->At(k)->TrackerTrk() &&
-	         CleanElectrons->At(k)->GsfTrk()->Charge() == CleanElectrons->At(k)->TrackerTrk()->Charge() &&
-		 CleanElectrons->At(k)->GsfTrk()->Charge() == CleanElectrons->At(k)->ScPixCharge()){
-	        // triple charge electron requirement
-	      } else {
-	        leptonsAgreeQ[j] = kFALSE;
-	      }
 	      DetEta =  CleanElectrons->At(k)->SCluster()->Eta();
   	      Bool_t idcut = ElectronTools::PassCustomID(CleanElectrons->At(k), ElectronTools::kVBTFWorkingPointFakeableId);
   	      if(idcut == kTRUE) {
@@ -555,10 +534,6 @@ void HwwMakeNtupleMod::Process()
 
       double pMET[2] = {metTools.GetProjectedMet(leptons,pfMetStatic),
         		metTools.GetProjectedTrackMet(leptons)};
-      pfMet->SetMex(pfMetStatic->Px());
-      pfMet->SetMey(pfMetStatic->Py());
-      pfMet->SetSumEt(pfMetStatic->SumEt());
-      pfMet->SetPFMetSig(pfMetStatic->PFMetSig());
 
       UInt_t leptonGenType[3]       = {0, 0, 0};
       UInt_t leptonMotherGenType[3] = {0, 0, 0};
@@ -647,7 +622,7 @@ void HwwMakeNtupleMod::Process()
                   delete object;          
                   break;
                 }
-                delete object;
+                delete object;          
               }
             }
           }
@@ -663,38 +638,24 @@ void HwwMakeNtupleMod::Process()
           leptonGenType[i] =   9;
         }
       }
-
-      Int_t typeGenFid = 0;
+/*
       if(GenLeptons && GenLeptons->GetEntries() >= 2){
-        if(GenLeptons->GetEntries() == 2) {
-	  typeGenFid = 1;
-	  if(GenLeptons->At(0)->Pt() > 20 && GenLeptons->At(0)->AbsEta() < 2.5 && 
-             GenLeptons->At(1)->Pt() > 10 && GenLeptons->At(1)->AbsEta() < 2.5) {
-	    typeGenFid = 2;
-	    if(GenLeptons->At(1)->Pt() > 20) {
-	      typeGenFid = 3;
-	    }
-	  }
-	}
-        if(GenLeptons->GetEntries() == 3) {
-	  typeGenFid = 4;
-	  int type3LGen[2] = {0,0};
-	  for(unsigned int n3l=0; n3l<GenLeptons->GetEntries(); n3l++) {
-	    if(GenLeptons->At(n3l)->Pt() > 20 && GenLeptons->At(n3l)->AbsEta() < 2.5) type3LGen[0]++;
-	    if(GenLeptons->At(n3l)->Pt() > 10 && GenLeptons->At(n3l)->AbsEta() < 2.5) type3LGen[1]++;
-	  }
-	  if     (type3LGen[0] == 0 && type3LGen[1] >= 0) typeGenFid = 4;
-	  else if(type3LGen[0] == 1 && type3LGen[1] == 1) typeGenFid = 4;
-	  else if(type3LGen[0] == 1 && type3LGen[1] == 2) typeGenFid = 5;
-	  else if(type3LGen[0] == 1 && type3LGen[1] == 3) typeGenFid = 6;
-	  else if(type3LGen[0] == 2 && type3LGen[1] == 2) typeGenFid = 7;
-	  else if(type3LGen[0] == 2 && type3LGen[1] == 3) typeGenFid = 8;
-	  else if(type3LGen[0] == 3 && type3LGen[1] == 3) typeGenFid = 8;
-	  else {printf("Impossible typeGenFid: %d %d\n",type3LGen[0],type3LGen[1]); assert(0);}
-	}
-        if(GenLeptons->GetEntries() >= 4) typeGenFid = 9;
+	Bool_t genCut2  = GenLeptons->GetEntries() == 2 && GenLeptons->At(0)->Pt() > 20 && GenLeptons->At(1)->Pt() > 20 &&
+							   GenLeptons->At(0)->AbsEta() < 2.5 && GenLeptons->At(1)->AbsEta() < 2.5;
+	Bool_t genCut32 = GenLeptons->GetEntries() == 3 && GenLeptons->At(0)->Pt() > 20 && GenLeptons->At(1)->Pt() > 20 &&
+							   GenLeptons->At(0)->AbsEta() < 2.5 && GenLeptons->At(1)->AbsEta() < 2.5 && 
+	        					  (GenLeptons->At(2)->Pt() <= 10 || GenLeptons->At(2)->AbsEta() >= 2.5);
+	Bool_t genCut3  = GenLeptons->GetEntries() == 3 && GenLeptons->At(0)->Pt() > 20 && GenLeptons->At(1)->Pt() > 20 && GenLeptons->At(2)->Pt() > 10 &&
+							   GenLeptons->At(0)->AbsEta() < 2.5 && GenLeptons->At(1)->AbsEta() < 2.5 && GenLeptons->At(2)->AbsEta() < 2.5;
+        if(genCut2 == true || genCut32 == true || genCut3 == true) printf("ZZZ %d %d %d %d\n",genCut2,genCut32,genCut3,leptonGenIsSeen[0]+leptonGenIsSeen[1]+leptonGenIsSeen[2]); 
+	if(genCut3 == true && leptonGenIsSeen[0]+leptonGenIsSeen[1]+leptonGenIsSeen[2] == 2) {
+          for (UInt_t j=0; j<3; j++) {
+	    if(leptonGenIsSeen[j] == 0) printf("NNN %d %f %f\n",GenLeptons->At(j)->AbsPdgId(),GenLeptons->At(j)->Pt(),GenLeptons->At(j)->AbsEta());
+            if(leptonGenIsSeen[j] == 1) printf("SSS %d %f %f\n",GenLeptons->At(j)->AbsPdgId(),GenLeptons->At(j)->Pt(),GenLeptons->At(j)->AbsEta());
+          }
+        }
       }
-
+*/
       CompositeParticle *dilepton = new CompositeParticle();
 
       // Sort and count the number of central Jets for vetoing
@@ -1011,18 +972,26 @@ void HwwMakeNtupleMod::Process()
   
       //Fill Higgs Pt
       Double_t higgsPt = -999;
-      Double_t vPtMin  = 100000.;
       if (GenBosons) {
         for (UInt_t i=0; i<GenBosons->GetEntries(); ++i) {        
           if (GenBosons->At(i)->PdgId() == MCParticle::kH) {
             higgsPt = GenBosons->At(i)->Pt();
           }
-          if (GenBosons->At(i)->Is(MCParticle::kW) ||
-	      GenBosons->At(i)->Is(MCParticle::kZ)) {
-            if(GenBosons->At(i)->Pt() < vPtMin) vPtMin = GenBosons->At(i)->Pt();
-	  }
         }
-	if(higgsPt == -999) higgsPt = vPtMin;
+      }
+      if(higgsPt <= 0) { // if Higgs is not found, use leptons and neutrinos
+        double thePH[2] = {0., 0.};
+	if(GenLeptons){
+          for (UInt_t i=0; i<GenLeptons->GetEntries(); ++i) {
+            thePH[0] += GenLeptons->At(i)->Px(); thePH[1] += GenLeptons->At(i)->Py();
+          }
+        }
+	if(GenNeutrinos){
+	  for (UInt_t i=0; i<GenNeutrinos->GetEntries(); ++i) {
+            thePH[0] += GenNeutrinos->At(i)->Px(); thePH[1] += GenNeutrinos->At(i)->Py();
+          }
+	}
+        higgsPt = sqrt(thePH[0]*thePH[0]+thePH[1]*thePH[1]);
       }
 
       //For DY MC, we save the pre-FSR dilepton mass into the higgsPt variable
@@ -1246,17 +1215,10 @@ void HwwMakeNtupleMod::Process()
 	else if(fDecay == 20)                                        fSmurfTree.dstype_ = SmurfTree::wgstar;
 	else if(fDecay == 15)                                        fSmurfTree.dstype_ = SmurfTree::qcd;
 	else if(fIsData == kTRUE)	                             fSmurfTree.dstype_ = SmurfTree::data;
-	else if(fDecay == 34)                                        fSmurfTree.dstype_ = SmurfTree::wwewk;
 	else                                                         fSmurfTree.dstype_ = SmurfTree::other;
 
         if(fIsData == kTRUE) {
 	  //printf("DATAEVENTNTUPLE: %d %d %d %d\n",fEventHeader->EvtNum(),fEventHeader->RunNum(),fEventHeader->LumiSec(),fSmurfTree.type_);
-	}
-	if(fAddLheWeights){
-	  fSmurfTree.lheWeights_.clear();
-          for(unsigned int nlhe=0; nlhe<fLheWeights->GetEntries(); nlhe++){
-	    fSmurfTree.lheWeights_.push_back(fLheWeights->At(nlhe)->Weight());
-	  }
 	}
 	fSmurfTree.event_         = fEventHeader->EvtNum();
 	fSmurfTree.run_	          = fEventHeader->RunNum();
@@ -1413,9 +1375,9 @@ void HwwMakeNtupleMod::Process()
 	fSmurfTree.lep1MotherMcId_= leptonMotherGenType[0];
 	fSmurfTree.lep2MotherMcId_= leptonMotherGenType[1];
 
-	fSmurfTree.jet1McId_ = typeGenFid;
+	fSmurfTree.jet1McId_ = 0;
 	if(sortedJetsAll.size() >= 1) {
-	  if(sortedJetsAll[0]->MatchedMCFlavor() != 0) printf("MatchedMCFlavor IS WORKING!!!\n");
+	  fSmurfTree.jet1McId_ = sortedJetsAll[0]->MatchedMCFlavor();
           Bool_t isTau = kFALSE;
           for(UInt_t ntau=0; ntau<CleanTaus->GetEntries(); ntau++){
 	    if(CleanTaus->At(ntau)->Pt() <= 20) continue;
@@ -1424,15 +1386,8 @@ void HwwMakeNtupleMod::Process()
               break;
             }
           }
-	  if(isTau == kTRUE) fSmurfTree.jet1McId_ += 10;
+	  if(isTau == kTRUE) fSmurfTree.jet1McId_ += 100;
         }
-	if     (leptons->GetEntries() == 2 && (leptonsAgreeQ[0] == kFALSE || 
-	                                       leptonsAgreeQ[1] == kFALSE)) fSmurfTree.jet1McId_ += 100;
-	else if(leptons->GetEntries() >= 3 && (leptonsAgreeQ[0] == kFALSE || 
-	                                       leptonsAgreeQ[1] == kFALSE ||
-					       leptonsAgreeQ[2] == kFALSE)) fSmurfTree.jet1McId_ += 100;
-
-        if(hasZCand == kTRUE) fSmurfTree.jet1McId_ += 1000;
 
 	fSmurfTree.jet2McId_ = 0;
 	if(sortedJetsAll.size() >= 2) {
@@ -1581,11 +1536,6 @@ void HwwMakeNtupleMod::SlaveBegin()
   ReqBranch(fPFCandidatesName,             fPFCandidates);
   ReqBranch(fEvtHdrName,                   fEventHeader);
   ReqEventObject(fPileupEnergyDensityName, fPileupEnergyDensity, kTRUE);
-
-  if(fAddLheWeights){
-    printf("Reading LHE weights ON\n");
-    ReqBranch(fLheWeightsName,fLheWeights);
-  }
 
   if(fIsData == kFALSE){
     ReqBranch(fMCEvInfoName         , fMCEventInfo);

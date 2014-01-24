@@ -15,7 +15,7 @@
 #include "THStack.h"
 #include "TCanvas.h"
 #include "TLegend.h"
-#include "/home/ceballos/releases/CMSSW_5_2_3_patch3/src/Smurf/Core/SmurfTree.h"
+#include "/home/ceballos/releases/CMSSW_5_3_14/src/Smurf/Core/SmurfTree.h"
 #include <vector>
 #include <algorithm>
 #include "MitAna/Utils/interface/SimpleTable.h"

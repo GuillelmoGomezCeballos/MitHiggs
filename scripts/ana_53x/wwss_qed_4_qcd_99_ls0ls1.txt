@@ -1,0 +1,2 @@
+wwss_qed_4_qcd_99_ls0ls1       all_noskim
+wwss_qed_4_qcd_99_ls0ls1  fake_all_noskim

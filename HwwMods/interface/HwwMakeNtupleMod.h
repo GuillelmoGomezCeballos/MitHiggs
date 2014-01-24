@@ -29,6 +29,7 @@
 #include "MitPhysics/Utils/interface/MuonTools.h"
 #include "MitPhysics/Utils/interface/MuonIDMVA.h"
 #include "MitPhysics/Utils/interface/MVAMet.h"
+#include "MitAna/DataTree/interface/LheWeightCol.h"
 
 class TH1D;
 class TH2D;
@@ -75,6 +76,7 @@ namespace mithep
       void   SetMVAElVersion(int i)                       { fMVAElVersion                 = i;    }
       void   SetMVAMuVersion(int i)                       { fMVAMuVersion                 = i;    }
       void   SetRhoType(RhoUtilities::RhoType type)       { fTheRhoType                   = type; };
+      void   SetAddLheWeights(bool b)                     { fAddLheWeights                = b; };
 
     protected:
       Int_t             fFakeRatePredictionType;       //Which kind of Fake Rate prediction
@@ -130,6 +132,9 @@ namespace mithep
       Int_t             fMVAMuVersion;
       RhoUtilities::RhoType fTheRhoType;
       MVAMet           *fMVAMet;
+      Bool_t            fAddLheWeights;
+      TString           fLheWeightsName;
+      const LheWeightCol *fLheWeights;
       Int_t             fNEventsSelected;              //selected events
 
       PUReweighting    *fPUReweighting;  

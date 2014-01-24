@@ -3,7 +3,7 @@ import sys, getopt, os, fnmatch, commands
 import string
 
 ###declare 
-setupcmsswcommand = 'source ~/EVAL_SH65 5_2_3_patch3;'
+setupcmsswcommand = 'source ~/EVAL_SH65 5_3_14;'
 
 def usage():
     print "possible options are: --help, --InputPath=<myInputPath>, --OutputPath=<myOutputPath>, --FilenameHeader=<myFileHeader>, --DatasetListFile=<datasetListFile>, --TestSampleFraction=<TestSampleFraction>"
