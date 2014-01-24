@@ -678,19 +678,22 @@ void HwwMakeNtupleMod::Process()
 	}
         if(GenLeptons->GetEntries() == 3) {
 	  typeGenFid = 4;
-	  int type3LGen[2] = {0,0};
+	  int type3LGen[3] = {0,0,0};
 	  for(unsigned int n3l=0; n3l<GenLeptons->GetEntries(); n3l++) {
 	    if(GenLeptons->At(n3l)->Pt() > 20 && GenLeptons->At(n3l)->AbsEta() < 2.5) type3LGen[0]++;
 	    if(GenLeptons->At(n3l)->Pt() > 10 && GenLeptons->At(n3l)->AbsEta() < 2.5) type3LGen[1]++;
+	    if(GenLeptons->At(n3l)->Pt() > 10 && GenLeptons->At(n3l)->AbsEta() < 4.7) type3LGen[2]++;
 	  }
-	  if     (type3LGen[0] == 0 && type3LGen[1] >= 0) typeGenFid = 4;
-	  else if(type3LGen[0] == 1 && type3LGen[1] == 1) typeGenFid = 4;
-	  else if(type3LGen[0] == 1 && type3LGen[1] == 2) typeGenFid = 5;
-	  else if(type3LGen[0] == 1 && type3LGen[1] == 3) typeGenFid = 6;
-	  else if(type3LGen[0] == 2 && type3LGen[1] == 2) typeGenFid = 7;
-	  else if(type3LGen[0] == 2 && type3LGen[1] == 3) typeGenFid = 8;
-	  else if(type3LGen[0] == 3 && type3LGen[1] == 3) typeGenFid = 8;
-	  else {printf("Impossible typeGenFid: %d %d\n",type3LGen[0],type3LGen[1]); assert(0);}
+	  if     (type3LGen[0] == 0 && type3LGen[1] >= 0 && type3LGen[2] >= 0) typeGenFid = 4;
+	  else if(type3LGen[0] == 1 && type3LGen[1] == 1 && type3LGen[2] >= 0) typeGenFid = 4;
+	  else if(type3LGen[0] == 1 && type3LGen[1] == 2 && type3LGen[2] == 2) typeGenFid = 5.0;
+	  else if(type3LGen[0] == 1 && type3LGen[1] == 2 && type3LGen[2] == 3) typeGenFid = 5.1;
+	  else if(type3LGen[0] == 1 && type3LGen[1] == 3 && type3LGen[2] == 3) typeGenFid = 6;
+	  else if(type3LGen[0] == 2 && type3LGen[1] == 2 && type3LGen[2] == 2) typeGenFid = 7.0;
+	  else if(type3LGen[0] == 2 && type3LGen[1] == 2 && type3LGen[2] == 3) typeGenFid = 7.1;
+	  else if(type3LGen[0] == 2 && type3LGen[1] == 3 && type3LGen[2] == 3) typeGenFid = 8;
+	  else if(type3LGen[0] == 3 && type3LGen[1] == 3 && type3LGen[2] == 3) typeGenFid = 8;
+	  else {printf("Impossible typeGenFid: %d %d %d\n",type3LGen[0],type3LGen[1],type3LGen[2]); assert(0);}
 	}
         if(GenLeptons->GetEntries() >= 4) typeGenFid = 9;
       }
