@@ -148,6 +148,7 @@ namespace mithep
       void      SlaveBegin();
       void      SlaveTerminate();
       void      Terminate();	  
+      void      PFTrkSel(const ParticleOArr *leptons, const Vertex *vertex, bool trkSel[4]);
 
       ClassDef(HwwMakeNtupleMod,1) // TAM example analysis module
   };

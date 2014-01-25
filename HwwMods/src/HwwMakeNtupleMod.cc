@@ -359,9 +359,9 @@ void HwwMakeNtupleMod::Process()
 	  CompositeParticle looseDilepton;
 	  looseDilepton.AddDaughter(mu);
 	  looseDilepton.AddDaughter(mu2);
-	  double zDiff = TMath::Abs(mu ->BestTrk()->DzCorrected(*fVertices->At(0))-
-	                            mu2->BestTrk()->DzCorrected(*fVertices->At(0)));
-	  if(mu->Pt() > 10 && mu2->Pt() > 10 &&  zDiff < 0.1 &&
+	  if(mu->Pt() > 10 && mu2->Pt() > 10 && 
+	     mu ->BestTrk()->DzCorrected(*fVertices->At(0)) < 0.1 &&
+	     mu2->BestTrk()->DzCorrected(*fVertices->At(0)) < 0.1 &&
 	     TMath::Abs(looseDilepton.Mass()-91.1876) < 15.0) hasZCand = kTRUE;
 	}
       }
@@ -384,9 +384,9 @@ void HwwMakeNtupleMod::Process()
 	  CompositeParticle looseDilepton;
 	  looseDilepton.AddDaughter(el);
 	  looseDilepton.AddDaughter(el2);
-	  double zDiff = TMath::Abs(el ->GsfTrk()->DzCorrected(*fVertices->At(0))-
-	                            el2->GsfTrk()->DzCorrected(*fVertices->At(0)));
-	  if(el->Pt() > 10 && el2->Pt() > 10 && zDiff < 0.1 &&
+	  if(el->Pt() > 10 && el2->Pt() > 10 && 
+	     el ->GsfTrk()->DzCorrected(*fVertices->At(0)) < 0.1 &&
+	     el2->GsfTrk()->DzCorrected(*fVertices->At(0)) < 0.1 &&
 	     TMath::Abs(looseDilepton.Mass()-91.1876) < 15.0) hasZCand = kTRUE;
 	}
       }
@@ -1437,9 +1437,15 @@ void HwwMakeNtupleMod::Process()
 
         if(hasZCand == kTRUE) fSmurfTree.jet1McId_ += 1000;
 
+	bool trkSel[4] = {false,false,false,false};
+        PFTrkSel(leptons, fVertices->At(0), trkSel);
 	fSmurfTree.jet2McId_ = 0;
+	if(trkSel[0] == true) fSmurfTree.jet2McId_ += 100;
+	if(trkSel[1] == true) fSmurfTree.jet2McId_ += 1000;
+	if(trkSel[2] == true) fSmurfTree.jet2McId_ += 10000;
+	if(trkSel[3] == true) fSmurfTree.jet2McId_ += 100000;
 	if(sortedJetsAll.size() >= 2) {
-	  fSmurfTree.jet2McId_ = sortedJetsAll[1]->MatchedMCFlavor();
+	  if(sortedJetsAll[1]->MatchedMCFlavor() != 0) printf("MatchedMCFlavor IS WORKING!!!\n");
           Bool_t isTau = kFALSE;
           for(UInt_t ntau=0; ntau<CleanTaus->GetEntries(); ntau++){
 	    if(CleanTaus->At(ntau)->Pt() <= 20) continue;
@@ -1448,7 +1454,7 @@ void HwwMakeNtupleMod::Process()
               break;
             }
           }
-	  if(isTau == kTRUE) fSmurfTree.jet2McId_ += 100;
+	  if(isTau == kTRUE) fSmurfTree.jet2McId_ += 10;
         }
 
         if(fSmurfTree.lq1_ * fSmurfTree.lq2_ < 0) fSmurfTree.cuts_ |= SmurfTree::ChargeMatch; // q1*q2<0
@@ -1504,7 +1510,7 @@ void HwwMakeNtupleMod::Process()
         	break;
               }
             }
-	    if(isTau == kTRUE) fSmurfTree.jet3McId_ += 100;
+	    if(isTau == kTRUE) fSmurfTree.jet3McId_ += 10;
           }
 
 	  fSmurfTree.jet4McId_ = 0;
@@ -1518,7 +1524,7 @@ void HwwMakeNtupleMod::Process()
         	break;
               }
             }
-	    if(isTau == kTRUE) fSmurfTree.jet4McId_ += 100;
+	    if(isTau == kTRUE) fSmurfTree.jet4McId_ += 10;
           }
 
 	  fSmurfTree.dPhiLep3Jet1_  = dPhiLep3Jet1_ ;
@@ -1730,4 +1736,63 @@ void HwwMakeNtupleMod::SlaveTerminate()
 void HwwMakeNtupleMod::Terminate()
 {
   // Run finishing code on the client computer
+}
+
+//--------------------------------------------------------------------------------------------------
+void HwwMakeNtupleMod::PFTrkSel(const ParticleOArr *leptons, const Vertex *vertex, bool trkSel[4]) {
+  trkSel[0] = kFALSE;
+  trkSel[1] = kFALSE;
+  trkSel[2] = kFALSE;
+  trkSel[3] = kFALSE;
+  if(leptons->GetEntries() <= 0) return;
+
+  for (UInt_t i=0; i<fPFCandidates->GetEntries(); i++) {
+    const PFCandidate *pf = fPFCandidates->At(i);
+
+    if(pf->Pt() > 10 && pf->AbsEta() > 2.5 && pf->AbsEta() < 4.7) {
+      Double_t ptSum = 0.0;
+      for (UInt_t j=0; j<fPFCandidates->GetEntries(); j++) {
+        const PFCandidate *pfcone = fPFCandidates->At(j);
+        if(pf == pfcone) continue;
+        Double_t dr = MathUtils::DeltaR(pfcone->Mom(), pf->Mom());
+        if ( dr <  0.30 && dr >= 0.01 ) ptSum += pfcone->Pt();
+      }
+      if(ptSum/pf->Pt() >= 0.2) continue;
+      for (UInt_t nl = 0; nl<leptons->GetEntries(); nl++) {
+        CompositeParticle dilepton;
+        dilepton.AddDaughter(leptons->At(nl));
+        dilepton.AddDaughter(pf);
+        if(leptons->At(nl)->ObjType() == kElectron) {
+	  if     (TMath::Abs(dilepton.Mass()-91.1876) < 10.0 && pf->AbsEta() < 3.0) trkSel[0] = kTRUE;
+	  else if(TMath::Abs(dilepton.Mass()-91.1876) < 10.0                      ) trkSel[1] = kTRUE;
+	}
+      } // loop over leptons
+    } // high pt forward PF candidates
+
+    if(pf->HasTrk() && pf->Pt() > 5 && TMath::Abs(pf->BestTrk()->DzCorrected(*vertex)) < 0.10 &&
+                                       TMath::Abs(pf->BestTrk()->D0Corrected(*vertex)) < 0.02 &&
+      (pf->PFType() == PFCandidate::eElectron || pf->PFType() == PFCandidate::eMuon || pf->Pt() > 20)) {
+      Double_t dRMin = 999.;
+      for (UInt_t nl = 0; nl<leptons->GetEntries(); nl++) {
+        Double_t dr = MathUtils::DeltaR(leptons->At(nl)->Mom(), pf->Mom());
+	if(dr < dRMin) dRMin = dr;
+      }
+      if(dRMin > 0.3){
+	Double_t ptSum = 0.0;
+	for (UInt_t j=0; j<fPFCandidates->GetEntries(); j++) {
+          const PFCandidate *pfcone = fPFCandidates->At(j);
+          if(pf == pfcone) continue;
+          if(!pfcone->HasTrk()) continue;
+	  if(TMath::Abs(pfcone->BestTrk()->DzCorrected(*vertex)) < 0.10){
+            Double_t dr = MathUtils::DeltaR(pfcone->Mom(), pf->Mom());
+            if ( dr <  0.30 && dr >= 0.01 ) ptSum += pfcone->Pt();
+          }
+	}
+	if(ptSum/pf->Pt() >= 0.1) continue;
+	if     (pf->PFType() == PFCandidate::eElectron || pf->PFType() == PFCandidate::eMuon) trkSel[2] = kTRUE;
+	else if(ptSum/pf->Pt() < 0.1                                                        ) trkSel[3] = kTRUE;
+      } // dRMin requirement
+    }
+  } // loop over PF candidates
+ 
 }
