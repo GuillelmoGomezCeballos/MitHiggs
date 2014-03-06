@@ -55,6 +55,7 @@ HwwMakeNtupleMod::HwwMakeNtupleMod(const char *name, const char *title) :
   fMCEventInfo(0),
   fCaloJetName0("AKt5Jets"),
   fPFJetName0("AKt5PFJets"),
+  fGenJetName("AKT5GenJets"),
   fCaloJet0(0),
   fPFJet0(0),
   fMuons(0),
@@ -63,6 +64,7 @@ HwwMakeNtupleMod::HwwMakeNtupleMod(const char *name, const char *title) :
   fVertices(0),
   fPileupInfos(0),
   fParticles(0),
+  fGenJets(0),
   fDecay(0),
   fJetScaleSyst(0.0),
   fIsData(kFALSE),
@@ -87,6 +89,7 @@ HwwMakeNtupleMod::HwwMakeNtupleMod(const char *name, const char *title) :
   fAddLheWeights(kFALSE),
   fLheWeightsName("LheWeights"),
   fLheWeights(0),
+  fSaveAll(kFALSE),
   fNEventsSelected(0)
 {
   // Constructor.
@@ -118,9 +121,12 @@ void HwwMakeNtupleMod::Process()
   LoadBranch(fPFCandidatesName);
   if (!fIsData) LoadBranch(Names::gkPileupInfoBrn);
   if (!fIsData) LoadBranch(Names::gkMCPartBrn);
+  if (!fIsData) LoadEventObject(fGenJetName,fGenJets);
   LoadEventObject(fPileupEnergyDensityName, fPileupEnergyDensity);
   LoadBranch(fTrackName);
   if(fAddLheWeights) LoadBranch(fLheWeightsName);
+
+  fSmurfTree.InitVariables();
 
   //************************************************************************************************
   //Get NNLO Weight
@@ -160,6 +166,153 @@ void HwwMakeNtupleMod::Process()
     for (UInt_t i=0; i<GenTaus->GetEntries(); i++)
       GenLeptonsAndTaus->Add(GenTaus->At(i));
     GenBosons = GetObjThisEvt<MCParticleCol>(ModNames::gkMCBosonsName);    
+  }
+
+  if(fIsData == kFALSE) {
+    if(GenLeptons){
+      if(GenLeptons->GetEntries() >= 1) {
+        fSmurfTree.genlep1_     = GenLeptons->At(0)->Mom();
+        fSmurfTree.genlep1McId_ = GenLeptons->At(0)->PdgId();
+      }
+      if(GenLeptons->GetEntries() >= 2) {
+        fSmurfTree.genlep2_     = GenLeptons->At(1)->Mom();
+        fSmurfTree.genlep2McId_ = GenLeptons->At(1)->PdgId();
+      }
+      if(GenLeptons->GetEntries() >= 3) {
+        fSmurfTree.genlep3_     = GenLeptons->At(2)->Mom();
+        fSmurfTree.genlep3McId_ = GenLeptons->At(2)->PdgId();
+      }
+    }
+    if(fGenJets){
+      Double_t nGenJet[3] = {-1, -1, -1};
+      for(UInt_t ngj=0; ngj<fGenJets->GetEntries(); ngj++){
+        Double_t dRMin = 999.;
+        if(GenLeptons){
+          for(UInt_t ngl=0; ngl<GenLeptons->GetEntries(); ngl++){
+            if(MathUtils::DeltaR(fGenJets->At(ngj)->Mom(), GenLeptons->At(ngl)->Mom()) < dRMin)
+              dRMin = MathUtils::DeltaR(fGenJets->At(ngj)->Mom(), GenLeptons->At(ngl)->Mom());
+          }
+        }
+        if(dRMin < 0.3) continue;
+        if     (nGenJet[0] == -1) nGenJet[0] = ngj;
+	else if(nGenJet[1] == -1) nGenJet[1] = ngj;
+	else if(nGenJet[2] == -1) nGenJet[2] = ngj;
+      }
+
+      if(nGenJet[0] >= 0)  fSmurfTree.genjet1_ = fGenJets->At(nGenJet[0])->Mom();
+      if(nGenJet[1] >= 0)  fSmurfTree.genjet2_ = fGenJets->At(nGenJet[1])->Mom();
+      if(nGenJet[2] >= 0)  fSmurfTree.genjet3_ = fGenJets->At(nGenJet[2])->Mom();
+    }
+    if(GenMet){
+      fSmurfTree.genmet_ = GenMet->At(0)->Mom();
+    }
+
+    LoadBranch(fMCEvInfoName);
+    fSmurfTree.Q_      = fMCEventInfo->Scale();
+    fSmurfTree.id1_    = fMCEventInfo->Id1();
+    fSmurfTree.x1_     = fMCEventInfo->X1();
+    fSmurfTree.pdf1_   = fMCEventInfo->Pdf1();
+    fSmurfTree.id2_    = fMCEventInfo->Id2();
+    fSmurfTree.x2_     = fMCEventInfo->X2();
+    fSmurfTree.pdf2_   = fMCEventInfo->Pdf2();
+    Int_t    processId = fMCEventInfo->ProcessId();
+
+    if     (fDecay == 110) { fSmurfTree.dstype_ = SmurfTree::hww110; processId = 10010; }
+    else if(fDecay == 115) { fSmurfTree.dstype_ = SmurfTree::hww115; processId = 10010; }
+    else if(fDecay == 118) { fSmurfTree.dstype_ = SmurfTree::hww118; processId = 10010; }
+    else if(fDecay == 120) { fSmurfTree.dstype_ = SmurfTree::hww120; processId = 10010; }
+    else if(fDecay == 122) { fSmurfTree.dstype_ = SmurfTree::hww122; processId = 10010; }
+    else if(fDecay == 124) { fSmurfTree.dstype_ = SmurfTree::hww124; processId = 10010; }
+    else if(fDecay == 125) { fSmurfTree.dstype_ = SmurfTree::hww125; processId = 10010; }
+    else if(fDecay == 126) { fSmurfTree.dstype_ = SmurfTree::hww126; processId = 10010; }
+    else if(fDecay == 128) { fSmurfTree.dstype_ = SmurfTree::hww128; processId = 10010; }
+    else if(fDecay == 130) { fSmurfTree.dstype_ = SmurfTree::hww130; processId = 10010; }
+    else if(fDecay == 135) { fSmurfTree.dstype_ = SmurfTree::hww135; processId = 10010; }
+    else if(fDecay == 140) { fSmurfTree.dstype_ = SmurfTree::hww140; processId = 10010; }
+    else if(fDecay == 145) { fSmurfTree.dstype_ = SmurfTree::hww145; processId = 10010; }
+    else if(fDecay == 150) { fSmurfTree.dstype_ = SmurfTree::hww150; processId = 10010; }
+    else if(fDecay == 155) { fSmurfTree.dstype_ = SmurfTree::hww155; processId = 10010; }
+    else if(fDecay == 160) { fSmurfTree.dstype_ = SmurfTree::hww160; processId = 10010; }
+    else if(fDecay == 170) { fSmurfTree.dstype_ = SmurfTree::hww170; processId = 10010; }
+    else if(fDecay == 180) { fSmurfTree.dstype_ = SmurfTree::hww180; processId = 10010; }
+    else if(fDecay == 190) { fSmurfTree.dstype_ = SmurfTree::hww190; processId = 10010; }
+    else if(fDecay == 200) { fSmurfTree.dstype_ = SmurfTree::hww200; processId = 10010; }
+    else if(fDecay == 210) { fSmurfTree.dstype_ = SmurfTree::hww210; processId = 10010; }
+    else if(fDecay == 220) { fSmurfTree.dstype_ = SmurfTree::hww220; processId = 10010; }
+    else if(fDecay == 230) { fSmurfTree.dstype_ = SmurfTree::hww230; processId = 10010; }
+    else if(fDecay == 250) { fSmurfTree.dstype_ = SmurfTree::hww250; processId = 10010; }
+    else if(fDecay == 300) { fSmurfTree.dstype_ = SmurfTree::hww300; processId = 10010; }
+    else if(fDecay == 350) { fSmurfTree.dstype_ = SmurfTree::hww350; processId = 10010; }
+    else if(fDecay == 400) { fSmurfTree.dstype_ = SmurfTree::hww400; processId = 10010; }
+    else if(fDecay == 450) { fSmurfTree.dstype_ = SmurfTree::hww450; processId = 10010; }
+    else if(fDecay == 500) { fSmurfTree.dstype_ = SmurfTree::hww500; processId = 10010; }
+    else if(fDecay == 550) { fSmurfTree.dstype_ = SmurfTree::hww550; processId = 10010; }
+    else if(fDecay == 600) { fSmurfTree.dstype_ = SmurfTree::hww600; processId = 10010; }
+    else if(fDecay == 700) { fSmurfTree.dstype_ = SmurfTree::hww700; processId = 10010; }
+    else if(fDecay == 800) { fSmurfTree.dstype_ = SmurfTree::hww800; processId = 10010; }
+    else if(fDecay == 900) { fSmurfTree.dstype_ = SmurfTree::hww900; processId = 10010; }
+    else if(fDecay ==1000) { fSmurfTree.dstype_ = SmurfTree::hww1000;processId = 10010; }
+
+    else if(fDecay == 1110){ fSmurfTree.dstype_ = SmurfTree::vbfhww110; processId = 10001; }
+    else if(fDecay == 1115){ fSmurfTree.dstype_ = SmurfTree::vbfhww115; processId = 10001; }
+    else if(fDecay == 1118){ fSmurfTree.dstype_ = SmurfTree::vbfhww118; processId = 10001; }
+    else if(fDecay == 1120){ fSmurfTree.dstype_ = SmurfTree::vbfhww120; processId = 10001; }
+    else if(fDecay == 1122){ fSmurfTree.dstype_ = SmurfTree::vbfhww122; processId = 10001; }
+    else if(fDecay == 1124){ fSmurfTree.dstype_ = SmurfTree::vbfhww124; processId = 10001; }
+    else if(fDecay == 1125){ fSmurfTree.dstype_ = SmurfTree::vbfhww125; processId = 10001; }
+    else if(fDecay == 1126){ fSmurfTree.dstype_ = SmurfTree::vbfhww126; processId = 10001; }
+    else if(fDecay == 1128){ fSmurfTree.dstype_ = SmurfTree::vbfhww128; processId = 10001; }
+    else if(fDecay == 1130){ fSmurfTree.dstype_ = SmurfTree::vbfhww130; processId = 10001; }
+    else if(fDecay == 1135){ fSmurfTree.dstype_ = SmurfTree::vbfhww135; processId = 10001; }
+    else if(fDecay == 1140){ fSmurfTree.dstype_ = SmurfTree::vbfhww140; processId = 10001; }
+    else if(fDecay == 1145){ fSmurfTree.dstype_ = SmurfTree::vbfhww145; processId = 10001; }
+    else if(fDecay == 1150){ fSmurfTree.dstype_ = SmurfTree::vbfhww150; processId = 10001; }
+    else if(fDecay == 1155){ fSmurfTree.dstype_ = SmurfTree::vbfhww155; processId = 10001; }
+    else if(fDecay == 1160){ fSmurfTree.dstype_ = SmurfTree::vbfhww160; processId = 10001; }
+    else if(fDecay == 1170){ fSmurfTree.dstype_ = SmurfTree::vbfhww170; processId = 10001; }
+    else if(fDecay == 1180){ fSmurfTree.dstype_ = SmurfTree::vbfhww180; processId = 10001; }
+    else if(fDecay == 1190){ fSmurfTree.dstype_ = SmurfTree::vbfhww190; processId = 10001; }
+    else if(fDecay == 1200){ fSmurfTree.dstype_ = SmurfTree::vbfhww200; processId = 10001; }
+    else if(fDecay == 1210){ fSmurfTree.dstype_ = SmurfTree::vbfhww210; processId = 10001; }
+    else if(fDecay == 1220){ fSmurfTree.dstype_ = SmurfTree::vbfhww220; processId = 10001; }
+    else if(fDecay == 1230){ fSmurfTree.dstype_ = SmurfTree::vbfhww230; processId = 10001; }
+    else if(fDecay == 1250){ fSmurfTree.dstype_ = SmurfTree::vbfhww250; processId = 10001; }
+    else if(fDecay == 1300){ fSmurfTree.dstype_ = SmurfTree::vbfhww300; processId = 10001; }
+    else if(fDecay == 1350){ fSmurfTree.dstype_ = SmurfTree::vbfhww350; processId = 10001; }
+    else if(fDecay == 1400){ fSmurfTree.dstype_ = SmurfTree::vbfhww400; processId = 10001; }
+    else if(fDecay == 1450){ fSmurfTree.dstype_ = SmurfTree::vbfhww450; processId = 10001; }
+    else if(fDecay == 1500){ fSmurfTree.dstype_ = SmurfTree::vbfhww500; processId = 10001; }
+    else if(fDecay == 1550){ fSmurfTree.dstype_ = SmurfTree::vbfhww550; processId = 10001; }
+    else if(fDecay == 1600){ fSmurfTree.dstype_ = SmurfTree::vbfhww600; processId = 10001; }
+    else if(fDecay == 1700){ fSmurfTree.dstype_ = SmurfTree::vbfhww700; processId = 10001; }
+    else if(fDecay == 1800){ fSmurfTree.dstype_ = SmurfTree::vbfhww800; processId = 10001; }
+    else if(fDecay == 1900){ fSmurfTree.dstype_ = SmurfTree::vbfhww900; processId = 10001; }
+    else if(fDecay == 2000){ fSmurfTree.dstype_ = SmurfTree::vbfhww1000;processId = 10001; }
+
+    else if(fDecay == 3)					 fSmurfTree.dstype_ = SmurfTree::wjets;
+    else if(fDecay == 5)					 fSmurfTree.dstype_ = SmurfTree::ttbar;
+    else if(fDecay == 6)					 fSmurfTree.dstype_ = SmurfTree::dymm;
+    else if(fDecay == 7)					 fSmurfTree.dstype_ = SmurfTree::dyee;
+    else if(fDecay == 8)					 fSmurfTree.dstype_ = SmurfTree::dytt;
+    else if(fDecay == 9)					 fSmurfTree.dstype_ = SmurfTree::dymm;
+    else if(fDecay == 11 || fDecay == 12 || fDecay == 13)	 fSmurfTree.dstype_ = SmurfTree::tw;
+    else if(fDecay == 10)					 fSmurfTree.dstype_ = SmurfTree::dyttDataDriven;
+    else if(fDecay == 27)					 fSmurfTree.dstype_ = SmurfTree::wz;
+    else if(fDecay == 28)					 fSmurfTree.dstype_ = SmurfTree::zz;
+    else if(fDecay == 29 || fDecay == 14)			 fSmurfTree.dstype_ = SmurfTree::qqww;
+    else if(fDecay == 30)					 fSmurfTree.dstype_ = SmurfTree::ggww;
+    else if(fDecay == 32)					 fSmurfTree.dstype_ = SmurfTree::qqwwPWG;
+    else if(fDecay == 33)					 fSmurfTree.dstype_ = SmurfTree::qqww2j;
+    else if(fDecay == 31)					 fSmurfTree.dstype_ = SmurfTree::ggzz;
+    else if(fDecay == 25)					 fSmurfTree.dstype_ = SmurfTree::www;
+    else if(fDecay == 17 || fDecay == 18 || fDecay == 19)	 fSmurfTree.dstype_ = SmurfTree::wgamma;
+    else if(fDecay == 20)					 fSmurfTree.dstype_ = SmurfTree::wgstar;
+    else if(fDecay == 15)					 fSmurfTree.dstype_ = SmurfTree::qcd;
+    else if(fIsData == kTRUE)					 fSmurfTree.dstype_ = SmurfTree::data;
+    else if(fDecay == 34)					 fSmurfTree.dstype_ = SmurfTree::wwewk;
+    else							 fSmurfTree.dstype_ = SmurfTree::other;
+
+    fSmurfTree.processId_ = processId;
   }
 
   //***********************************************************************************************
@@ -359,7 +512,7 @@ void HwwMakeNtupleMod::Process()
 	  CompositeParticle looseDilepton;
 	  looseDilepton.AddDaughter(mu);
 	  looseDilepton.AddDaughter(mu2);
-	  if(mu->Pt() > 10 && mu2->Pt() > 10 && 
+	  if(mu->Pt() > 10 && mu2->Pt() > 10 && mu->BestTrk() && mu2->BestTrk() &&
 	     mu ->BestTrk()->DzCorrected(*fVertices->At(0)) < 0.1 &&
 	     mu2->BestTrk()->DzCorrected(*fVertices->At(0)) < 0.1 &&
 	     TMath::Abs(looseDilepton.Mass()-91.1876) < 15.0) hasZCand = kTRUE;
@@ -384,7 +537,7 @@ void HwwMakeNtupleMod::Process()
 	  CompositeParticle looseDilepton;
 	  looseDilepton.AddDaughter(el);
 	  looseDilepton.AddDaughter(el2);
-	  if(el->Pt() > 10 && el2->Pt() > 10 && 
+	  if(el->Pt() > 10 && el2->Pt() > 10 && el->GsfTrk() && el2->GsfTrk() &&
 	     el ->GsfTrk()->DzCorrected(*fVertices->At(0)) < 0.1 &&
 	     el2->GsfTrk()->DzCorrected(*fVertices->At(0)) < 0.1 &&
 	     TMath::Abs(looseDilepton.Mass()-91.1876) < 15.0) hasZCand = kTRUE;
@@ -664,40 +817,6 @@ void HwwMakeNtupleMod::Process()
         }
       }
 
-      Int_t typeGenFid = 0;
-      if(GenLeptons && GenLeptons->GetEntries() >= 2){
-        if(GenLeptons->GetEntries() == 2) {
-	  typeGenFid = 1;
-	  if(GenLeptons->At(0)->Pt() > 20 && GenLeptons->At(0)->AbsEta() < 2.5 && 
-             GenLeptons->At(1)->Pt() > 10 && GenLeptons->At(1)->AbsEta() < 2.5) {
-	    typeGenFid = 2;
-	    if(GenLeptons->At(1)->Pt() > 20) {
-	      typeGenFid = 3;
-	    }
-	  }
-	}
-        if(GenLeptons->GetEntries() == 3) {
-	  typeGenFid = 4;
-	  int type3LGen[3] = {0,0,0};
-	  for(unsigned int n3l=0; n3l<GenLeptons->GetEntries(); n3l++) {
-	    if(GenLeptons->At(n3l)->Pt() > 20 && GenLeptons->At(n3l)->AbsEta() < 2.5) type3LGen[0]++;
-	    if(GenLeptons->At(n3l)->Pt() > 10 && GenLeptons->At(n3l)->AbsEta() < 2.5) type3LGen[1]++;
-	    if(GenLeptons->At(n3l)->Pt() > 10 && GenLeptons->At(n3l)->AbsEta() < 4.7) type3LGen[2]++;
-	  }
-	  if     (type3LGen[0] == 0 && type3LGen[1] >= 0 && type3LGen[2] >= 0) typeGenFid = 4;
-	  else if(type3LGen[0] == 1 && type3LGen[1] == 1 && type3LGen[2] >= 0) typeGenFid = 4;
-	  else if(type3LGen[0] == 1 && type3LGen[1] == 2 && type3LGen[2] == 2) typeGenFid = 5.0;
-	  else if(type3LGen[0] == 1 && type3LGen[1] == 2 && type3LGen[2] == 3) typeGenFid = 5.1;
-	  else if(type3LGen[0] == 1 && type3LGen[1] == 3 && type3LGen[2] == 3) typeGenFid = 6;
-	  else if(type3LGen[0] == 2 && type3LGen[1] == 2 && type3LGen[2] == 2) typeGenFid = 7.0;
-	  else if(type3LGen[0] == 2 && type3LGen[1] == 2 && type3LGen[2] == 3) typeGenFid = 7.1;
-	  else if(type3LGen[0] == 2 && type3LGen[1] == 3 && type3LGen[2] == 3) typeGenFid = 8;
-	  else if(type3LGen[0] == 3 && type3LGen[1] == 3 && type3LGen[2] == 3) typeGenFid = 8;
-	  else {printf("Impossible typeGenFid: %d %d %d\n",type3LGen[0],type3LGen[1],type3LGen[2]); assert(0);}
-	}
-        if(GenLeptons->GetEntries() >= 4) typeGenFid = 9;
-      }
-
       CompositeParticle *dilepton = new CompositeParticle();
 
       // Sort and count the number of central Jets for vetoing
@@ -705,7 +824,6 @@ void HwwMakeNtupleMod::Process()
       vector<Jet*> sortedJets;
       double nMaxMediumBTagJet = -25.0;
       double nMaxMediumOtherBTagJet[6] = {-25.0,-25.0,-25.0,-25.0,-25.0,-25.0};
-      double dZAverageJet1Pt = 0.0;
       for(UInt_t i=0; i<CleanJetsNoPtCut->GetEntries(); i++){
         if(CleanJetsNoPtCut->At(i)->RawMom().Pt() <= 7) continue;
         if(TMath::Abs(CleanJetsNoPtCut->At(i)->RawMom().Eta()) >= fEtaJetCut) continue;
@@ -794,8 +912,6 @@ void HwwMakeNtupleMod::Process()
 	    break;
 	  }
 	} // loop over PF jets
-	if(i == 0) dZAverageJet1Pt = dZAverageJetPt;
-        //if(dZAverageJetPt >= 2.0 || jetPt <= 10){
         if(jetPt <= 10){
 	  sortedJetsAll[i]->SetTrackCountingHighEffBJetTagsDisc      (-25.0);
 	  sortedJetsAll[i]->SetCombinedSecondaryVertexBJetTagsDisc   (-25.0);
@@ -970,48 +1086,10 @@ void HwwMakeNtupleMod::Process()
 	mtHiggs = TMath::Sqrt(2.0*dilepton->Pt()*pfMet->Pt()*(1.0 - cos(deltaPhiDileptonMet)));
       }
 
-      double dPhiLep1Jet1_ = -999;
-      double dRLep1Jet1_   = -999;
-      double dPhiLep2Jet1_ = -999;
-      double dRLep2Jet1_   = -999;
-      double dPhiLep3Jet1_ = -999;
-      double dRLep3Jet1_   = -999;
-      
       if(sortedJetsAll.size() > 0){
 	deltaPhiLLJet  = fabs(MathUtils::DeltaPhi(dilepton->Phi(), sortedJetsAll[0]->Phi()));
+      }
 
-	if (leptons->GetEntries() >= 2){
-	  dPhiLep1Jet1_ = fabs(MathUtils::DeltaPhi(leptons->At(0)->Phi(), sortedJetsAll[0]->Phi()));
-	  dRLep1Jet1_   = MathUtils::DeltaR(leptons->At(0)->Mom(), sortedJetsAll[0]->Mom());
-	  dPhiLep2Jet1_ = fabs(MathUtils::DeltaPhi(leptons->At(1)->Phi(), sortedJetsAll[0]->Phi()));
-	  dRLep2Jet1_   = MathUtils::DeltaR(leptons->At(1)->Mom(), sortedJetsAll[0]->Mom());
-	}
-	if(leptons->GetEntries() > 2){
-	  dPhiLep3Jet1_ = fabs(MathUtils::DeltaPhi(leptons->At(2)->Phi(), sortedJetsAll[0]->Phi()));
-	  dRLep3Jet1_   = MathUtils::DeltaR(leptons->At(2)->Mom(), sortedJetsAll[0]->Mom());
-	}
-      }
-      
-      Double_t Q    	 = 0.0;
-      Int_t    id1  	 = 0;
-      Double_t x1   	 = 0.0;
-      Double_t pdf1 	 = 0.0;
-      Int_t    id2  	 = 0;
-      Double_t x2   	 = 0.0;
-      Double_t pdf2 	 = 0.0;
-      Int_t    processId = 0;
-      if(fIsData == kFALSE){
-         LoadBranch(fMCEvInfoName);
-         Q    	   = fMCEventInfo->Scale();
-         id1  	   = fMCEventInfo->Id1();
-         x1   	   = fMCEventInfo->X1();
-         pdf1 	   = fMCEventInfo->Pdf1();
-         id2  	   = fMCEventInfo->Id2();
-         x2   	   = fMCEventInfo->X2();
-         pdf2 	   = fMCEventInfo->Pdf2();
-	 processId = fMCEventInfo->ProcessId();
-      }
-  
       //Fill Higgs Pt
       Double_t higgsPt = -999;
       Double_t vPtMin  = 100000.;
@@ -1157,104 +1235,11 @@ void HwwMakeNtupleMod::Process()
       if(passCuts) fNEventsSelected++;
 
       if(zDiffMax < 10000.0 || fFillPhotonTemplate ) {
-	if     (fDecay == 110) { fSmurfTree.dstype_ = SmurfTree::hww110; processId = 10010; }
-	else if(fDecay == 115) { fSmurfTree.dstype_ = SmurfTree::hww115; processId = 10010; }
-	else if(fDecay == 118) { fSmurfTree.dstype_ = SmurfTree::hww118; processId = 10010; }
-	else if(fDecay == 120) { fSmurfTree.dstype_ = SmurfTree::hww120; processId = 10010; }
-	else if(fDecay == 122) { fSmurfTree.dstype_ = SmurfTree::hww122; processId = 10010; }
-	else if(fDecay == 124) { fSmurfTree.dstype_ = SmurfTree::hww124; processId = 10010; }
-	else if(fDecay == 125) { fSmurfTree.dstype_ = SmurfTree::hww125; processId = 10010; }
-	else if(fDecay == 126) { fSmurfTree.dstype_ = SmurfTree::hww126; processId = 10010; }
-	else if(fDecay == 128) { fSmurfTree.dstype_ = SmurfTree::hww128; processId = 10010; }
-	else if(fDecay == 130) { fSmurfTree.dstype_ = SmurfTree::hww130; processId = 10010; }
-	else if(fDecay == 135) { fSmurfTree.dstype_ = SmurfTree::hww135; processId = 10010; }
-	else if(fDecay == 140) { fSmurfTree.dstype_ = SmurfTree::hww140; processId = 10010; }
-	else if(fDecay == 145) { fSmurfTree.dstype_ = SmurfTree::hww145; processId = 10010; }
-	else if(fDecay == 150) { fSmurfTree.dstype_ = SmurfTree::hww150; processId = 10010; }
-	else if(fDecay == 155) { fSmurfTree.dstype_ = SmurfTree::hww155; processId = 10010; }
-	else if(fDecay == 160) { fSmurfTree.dstype_ = SmurfTree::hww160; processId = 10010; }
-	else if(fDecay == 170) { fSmurfTree.dstype_ = SmurfTree::hww170; processId = 10010; }
-	else if(fDecay == 180) { fSmurfTree.dstype_ = SmurfTree::hww180; processId = 10010; }
-	else if(fDecay == 190) { fSmurfTree.dstype_ = SmurfTree::hww190; processId = 10010; }
-	else if(fDecay == 200) { fSmurfTree.dstype_ = SmurfTree::hww200; processId = 10010; }
-	else if(fDecay == 210) { fSmurfTree.dstype_ = SmurfTree::hww210; processId = 10010; }
-	else if(fDecay == 220) { fSmurfTree.dstype_ = SmurfTree::hww220; processId = 10010; }
-	else if(fDecay == 230) { fSmurfTree.dstype_ = SmurfTree::hww230; processId = 10010; }
-	else if(fDecay == 250) { fSmurfTree.dstype_ = SmurfTree::hww250; processId = 10010; }
-	else if(fDecay == 300) { fSmurfTree.dstype_ = SmurfTree::hww300; processId = 10010; }
-	else if(fDecay == 350) { fSmurfTree.dstype_ = SmurfTree::hww350; processId = 10010; }
-	else if(fDecay == 400) { fSmurfTree.dstype_ = SmurfTree::hww400; processId = 10010; }
-	else if(fDecay == 450) { fSmurfTree.dstype_ = SmurfTree::hww450; processId = 10010; }
-	else if(fDecay == 500) { fSmurfTree.dstype_ = SmurfTree::hww500; processId = 10010; }
-	else if(fDecay == 550) { fSmurfTree.dstype_ = SmurfTree::hww550; processId = 10010; }
-	else if(fDecay == 600) { fSmurfTree.dstype_ = SmurfTree::hww600; processId = 10010; }
-	else if(fDecay == 700) { fSmurfTree.dstype_ = SmurfTree::hww700; processId = 10010; }
-	else if(fDecay == 800) { fSmurfTree.dstype_ = SmurfTree::hww800; processId = 10010; }
-	else if(fDecay == 900) { fSmurfTree.dstype_ = SmurfTree::hww900; processId = 10010; }
-	else if(fDecay ==1000) { fSmurfTree.dstype_ = SmurfTree::hww1000;processId = 10010; }
-
-	else if(fDecay == 1110){ fSmurfTree.dstype_ = SmurfTree::vbfhww110; processId = 10001; }
-	else if(fDecay == 1115){ fSmurfTree.dstype_ = SmurfTree::vbfhww115; processId = 10001; }
-	else if(fDecay == 1118){ fSmurfTree.dstype_ = SmurfTree::vbfhww118; processId = 10001; }
-	else if(fDecay == 1120){ fSmurfTree.dstype_ = SmurfTree::vbfhww120; processId = 10001; }
-	else if(fDecay == 1122){ fSmurfTree.dstype_ = SmurfTree::vbfhww122; processId = 10001; }
-	else if(fDecay == 1124){ fSmurfTree.dstype_ = SmurfTree::vbfhww124; processId = 10001; }
-	else if(fDecay == 1125){ fSmurfTree.dstype_ = SmurfTree::vbfhww125; processId = 10001; }
-	else if(fDecay == 1126){ fSmurfTree.dstype_ = SmurfTree::vbfhww126; processId = 10001; }
-	else if(fDecay == 1128){ fSmurfTree.dstype_ = SmurfTree::vbfhww128; processId = 10001; }
-	else if(fDecay == 1130){ fSmurfTree.dstype_ = SmurfTree::vbfhww130; processId = 10001; }
-	else if(fDecay == 1135){ fSmurfTree.dstype_ = SmurfTree::vbfhww135; processId = 10001; }
-	else if(fDecay == 1140){ fSmurfTree.dstype_ = SmurfTree::vbfhww140; processId = 10001; }
-	else if(fDecay == 1145){ fSmurfTree.dstype_ = SmurfTree::vbfhww145; processId = 10001; }
-	else if(fDecay == 1150){ fSmurfTree.dstype_ = SmurfTree::vbfhww150; processId = 10001; }
-	else if(fDecay == 1155){ fSmurfTree.dstype_ = SmurfTree::vbfhww155; processId = 10001; }
-	else if(fDecay == 1160){ fSmurfTree.dstype_ = SmurfTree::vbfhww160; processId = 10001; }
-	else if(fDecay == 1170){ fSmurfTree.dstype_ = SmurfTree::vbfhww170; processId = 10001; }
-	else if(fDecay == 1180){ fSmurfTree.dstype_ = SmurfTree::vbfhww180; processId = 10001; }
-	else if(fDecay == 1190){ fSmurfTree.dstype_ = SmurfTree::vbfhww190; processId = 10001; }
-	else if(fDecay == 1200){ fSmurfTree.dstype_ = SmurfTree::vbfhww200; processId = 10001; }
-	else if(fDecay == 1210){ fSmurfTree.dstype_ = SmurfTree::vbfhww210; processId = 10001; }
-	else if(fDecay == 1220){ fSmurfTree.dstype_ = SmurfTree::vbfhww220; processId = 10001; }
-	else if(fDecay == 1230){ fSmurfTree.dstype_ = SmurfTree::vbfhww230; processId = 10001; }
-	else if(fDecay == 1250){ fSmurfTree.dstype_ = SmurfTree::vbfhww250; processId = 10001; }
-	else if(fDecay == 1300){ fSmurfTree.dstype_ = SmurfTree::vbfhww300; processId = 10001; }
-	else if(fDecay == 1350){ fSmurfTree.dstype_ = SmurfTree::vbfhww350; processId = 10001; }
-	else if(fDecay == 1400){ fSmurfTree.dstype_ = SmurfTree::vbfhww400; processId = 10001; }
-	else if(fDecay == 1450){ fSmurfTree.dstype_ = SmurfTree::vbfhww450; processId = 10001; }
-	else if(fDecay == 1500){ fSmurfTree.dstype_ = SmurfTree::vbfhww500; processId = 10001; }
-	else if(fDecay == 1550){ fSmurfTree.dstype_ = SmurfTree::vbfhww550; processId = 10001; }
-	else if(fDecay == 1600){ fSmurfTree.dstype_ = SmurfTree::vbfhww600; processId = 10001; }
-	else if(fDecay == 1700){ fSmurfTree.dstype_ = SmurfTree::vbfhww700; processId = 10001; }
-	else if(fDecay == 1800){ fSmurfTree.dstype_ = SmurfTree::vbfhww800; processId = 10001; }
-	else if(fDecay == 1900){ fSmurfTree.dstype_ = SmurfTree::vbfhww900; processId = 10001; }
-	else if(fDecay == 2000){ fSmurfTree.dstype_ = SmurfTree::vbfhww1000;processId = 10001; }
-
-	else if(fDecay == 3)                                         fSmurfTree.dstype_ = SmurfTree::wjets;
-	else if(fDecay == 5)                                         fSmurfTree.dstype_ = SmurfTree::ttbar;
-	else if(fDecay == 6)                                         fSmurfTree.dstype_ = SmurfTree::dymm;
-	else if(fDecay == 7)                                         fSmurfTree.dstype_ = SmurfTree::dyee;
-	else if(fDecay == 8)                                         fSmurfTree.dstype_ = SmurfTree::dytt;
-	else if(fDecay == 9)                                         fSmurfTree.dstype_ = SmurfTree::dymm;
-	else if(fDecay == 11 || fDecay == 12 || fDecay == 13)        fSmurfTree.dstype_ = SmurfTree::tw;
-	else if(fDecay == 10)                                        fSmurfTree.dstype_ = SmurfTree::dyttDataDriven;
-	else if(fDecay == 27)                                        fSmurfTree.dstype_ = SmurfTree::wz;
-	else if(fDecay == 28)                                        fSmurfTree.dstype_ = SmurfTree::zz;
-	else if(fDecay == 29 || fDecay == 14)                        fSmurfTree.dstype_ = SmurfTree::qqww;
-	else if(fDecay == 30)                                        fSmurfTree.dstype_ = SmurfTree::ggww;
-	else if(fDecay == 32)                                        fSmurfTree.dstype_ = SmurfTree::qqwwPWG;
-	else if(fDecay == 33)                                        fSmurfTree.dstype_ = SmurfTree::qqww2j;
-	else if(fDecay == 31)                                        fSmurfTree.dstype_ = SmurfTree::ggzz;
-	else if(fDecay == 25)                                        fSmurfTree.dstype_ = SmurfTree::www;
-	else if(fDecay == 17 || fDecay == 18 || fDecay == 19)	     fSmurfTree.dstype_ = SmurfTree::wgamma;
-	else if(fDecay == 20)                                        fSmurfTree.dstype_ = SmurfTree::wgstar;
-	else if(fDecay == 15)                                        fSmurfTree.dstype_ = SmurfTree::qcd;
-	else if(fIsData == kTRUE)	                             fSmurfTree.dstype_ = SmurfTree::data;
-	else if(fDecay == 34)                                        fSmurfTree.dstype_ = SmurfTree::wwewk;
-	else                                                         fSmurfTree.dstype_ = SmurfTree::other;
 
         if(fIsData == kTRUE) {
 	  //printf("DATAEVENTNTUPLE: %d %d %d %d\n",fEventHeader->EvtNum(),fEventHeader->RunNum(),fEventHeader->LumiSec(),fSmurfTree.type_);
 	}
+
 	if(fAddLheWeights){
 	  fSmurfTree.lheWeights_.clear();
           for(unsigned int nlhe=0; nlhe<fLheWeights->GetEntries(); nlhe++){
@@ -1300,10 +1285,6 @@ void HwwMakeNtupleMod::Process()
 	fSmurfTree.metPhi_        = pfMet->Phi();
 	fSmurfTree.sumet_         = pfMet->SumEt();
 	fSmurfTree.metSig_        = pfMet->PFMetSig();
-        if(GenMet->GetEntries() > 0){
-      	  fSmurfTree.genmet_	  = GenMet->At(0)->Pt();
-          fSmurfTree.genmetPhi_   = GenMet->At(0)->Phi();
-	}
 
 	if (leptons->GetEntries() >= 1) {
 	  fSmurfTree.lep1_          = leptons->At(0)->Mom();
@@ -1376,7 +1357,6 @@ void HwwMakeNtupleMod::Process()
 	else                          fSmurfTree.jet1Btag_ = -999.;
 	if(sortedJetsAll.size() >= 1) fSmurfTree.jet1ProbBtag_ = sortedJetsAll[0]->CombinedSecondaryVertexBJetTagsDisc();
 	else                          fSmurfTree.jet1ProbBtag_ = -999.;
-	fSmurfTree.jet1Dz_ = dZAverageJet1Pt;
 	if(sortedJetsAll.size() >= 2) fSmurfTree.jet2_     = sortedJetsAll[1]->Mom();
 	else                          fSmurfTree.jet2_     = null;
 	if(sortedJetsAll.size() >= 2) fSmurfTree.jet2Btag_ = sortedJetsAll[1]->TrackCountingHighEffBJetTagsDisc();
@@ -1384,11 +1364,6 @@ void HwwMakeNtupleMod::Process()
 	if(sortedJetsAll.size() >= 2) fSmurfTree.jet2ProbBtag_ = sortedJetsAll[1]->CombinedSecondaryVertexBJetTagsDisc();
 	else                          fSmurfTree.jet2ProbBtag_ = -999.;
 	fSmurfTree.njets_         = sortedJets.size();  
-
-      	fSmurfTree.CHSMet_	  = metToolsNoPu.GetCHSMet().Pt();
-      	fSmurfTree.NHSMet_	  = metToolsNoPu.GetNHSMet().Pt();
-      	fSmurfTree.CHSMetPhi_	  = metToolsNoPu.GetCHSMet().Phi();
-      	fSmurfTree.NHSMetPhi_	  = metToolsNoPu.GetNHSMet().Phi();
 
 	fSmurfTree.dilep_         = dilepton->Mom();
       	fSmurfTree.trackMet_	  = metTools.GetCorrectedTrackMet().Pt();
@@ -1403,10 +1378,6 @@ void HwwMakeNtupleMod::Process()
 	fSmurfTree.mt2_           = mTW[1];
 	fSmurfTree.dPhi_          = deltaPhiLeptons;
 	fSmurfTree.dR_            = deltaRLeptons;
-	fSmurfTree.dPhiLep1Jet1_  = dPhiLep1Jet1_ ;
-	fSmurfTree.dRLep1Jet1_    = dRLep1Jet1_;
-	fSmurfTree.dPhiLep2Jet1_  = dPhiLep2Jet1_;
-	fSmurfTree.dRLep2Jet1_    = dRLep2Jet1_;
 	fSmurfTree.dPhiLep1MET_   = deltaPhiMetLepton[0];
 	fSmurfTree.dPhiLep2MET_   = deltaPhiMetLepton[1];
 	fSmurfTree.dPhiDiLepMET_  = deltaPhiDileptonMet;
@@ -1416,19 +1387,24 @@ void HwwMakeNtupleMod::Process()
 	fSmurfTree.lep1MotherMcId_= leptonMotherGenType[0];
 	fSmurfTree.lep2MotherMcId_= leptonMotherGenType[1];
 
-	fSmurfTree.jet1McId_ = typeGenFid;
-	if(sortedJetsAll.size() >= 1) {
-	  if(sortedJetsAll[0]->MatchedMCFlavor() != 0) printf("MatchedMCFlavor IS WORKING!!!\n");
-          Bool_t isTau = kFALSE;
-          for(UInt_t ntau=0; ntau<CleanTaus->GetEntries(); ntau++){
-	    if(CleanTaus->At(ntau)->Pt() <= 20) continue;
-            if (MathUtils::DeltaR(CleanTaus->At(ntau)->Mom(), sortedJetsAll[0]->Mom()) < 0.3) {
-              isTau = kTRUE;
-              break;
-            }
-          }
-	  if(isTau == kTRUE) fSmurfTree.jet1McId_ += 10;
+	fSmurfTree.jet1McId_ = 0;
+	if(sortedJetsAll.size() >= 1 && sortedJetsAll[0]->MatchedMCFlavor() != 0) {
+	  printf("MatchedMCFlavor IS WORKING!!!\n"); assert(0);
         }
+
+        Bool_t isTau = kFALSE;
+	for(UInt_t nj=0; nj<sortedJetsAll.size(); nj++){
+	  if(sortedJetsAll[nj]->Pt() <= 20) continue;
+	  for(UInt_t ntau=0; ntau<CleanTaus->GetEntries(); ntau++){
+	    if(CleanTaus->At(ntau)->Pt() <= 20) continue;
+	    if(MathUtils::DeltaR(CleanTaus->At(ntau)->Mom(), sortedJetsAll[nj]->Mom()) < 0.3) {
+	      isTau = kTRUE;
+	      break;
+	    }
+	  }
+	}
+        if(isTau == kTRUE) fSmurfTree.jet1McId_ += 10;
+
 	if     (leptons->GetEntries() == 2 && (leptonsAgreeQ[0] == kFALSE || 
 	                                       leptonsAgreeQ[1] == kFALSE)) fSmurfTree.jet1McId_ += 100;
 	else if(leptons->GetEntries() >= 3 && (leptonsAgreeQ[0] == kFALSE || 
@@ -1440,21 +1416,12 @@ void HwwMakeNtupleMod::Process()
 	bool trkSel[4] = {false,false,false,false};
         PFTrkSel(leptons, fVertices->At(0), trkSel);
 	fSmurfTree.jet2McId_ = 0;
-	if(trkSel[0] == true) fSmurfTree.jet2McId_ += 100;
-	if(trkSel[1] == true) fSmurfTree.jet2McId_ += 1000;
-	if(trkSel[2] == true) fSmurfTree.jet2McId_ += 10000;
-	if(trkSel[3] == true) fSmurfTree.jet2McId_ += 100000;
-	if(sortedJetsAll.size() >= 2) {
-	  if(sortedJetsAll[1]->MatchedMCFlavor() != 0) printf("MatchedMCFlavor IS WORKING!!!\n");
-          Bool_t isTau = kFALSE;
-          for(UInt_t ntau=0; ntau<CleanTaus->GetEntries(); ntau++){
-	    if(CleanTaus->At(ntau)->Pt() <= 20) continue;
-            if (MathUtils::DeltaR(CleanTaus->At(ntau)->Mom(), sortedJetsAll[1]->Mom()) < 0.3) {
-              isTau = kTRUE;
-              break;
-            }
-          }
-	  if(isTau == kTRUE) fSmurfTree.jet2McId_ += 10;
+	if(trkSel[0] == true) fSmurfTree.jet2McId_ += 10;
+	if(trkSel[1] == true) fSmurfTree.jet2McId_ += 100;
+	if(trkSel[2] == true) fSmurfTree.jet2McId_ += 1000;
+	if(trkSel[3] == true) fSmurfTree.jet2McId_ += 10000;
+	if(sortedJetsAll.size() >= 2 && sortedJetsAll[1]->MatchedMCFlavor() != 0) {
+	  printf("MatchedMCFlavor IS WORKING!!!\n"); assert(0);
         }
 
         if(fSmurfTree.lq1_ * fSmurfTree.lq2_ < 0) fSmurfTree.cuts_ |= SmurfTree::ChargeMatch; // q1*q2<0
@@ -1500,51 +1467,16 @@ void HwwMakeNtupleMod::Process()
 	  fSmurfTree.lep3MotherMcId_= leptonMotherGenType[2];
 
 	  fSmurfTree.jet3McId_ = 0;
-	  if(sortedJetsAll.size() >= 3) {
-	    fSmurfTree.jet3McId_ = sortedJetsAll[2]->MatchedMCFlavor();
-            Bool_t isTau = kFALSE;
-            for(UInt_t ntau=0; ntau<CleanTaus->GetEntries(); ntau++){
-	    if(CleanTaus->At(ntau)->Pt() <= 20) continue;
-              if (MathUtils::DeltaR(CleanTaus->At(ntau)->Mom(), sortedJetsAll[2]->Mom()) < 0.3) {
-        	isTau = kTRUE;
-        	break;
-              }
-            }
-	    if(isTau == kTRUE) fSmurfTree.jet3McId_ += 10;
-          }
-
 	  fSmurfTree.jet4McId_ = 0;
-	  if(sortedJetsAll.size() >= 4) {
-	    fSmurfTree.jet4McId_ = sortedJetsAll[3]->MatchedMCFlavor();
-            Bool_t isTau = kFALSE;
-            for(UInt_t ntau=0; ntau<CleanTaus->GetEntries(); ntau++){
-	    if(CleanTaus->At(ntau)->Pt() <= 20) continue;
-              if (MathUtils::DeltaR(CleanTaus->At(ntau)->Mom(), sortedJetsAll[3]->Mom()) < 0.3) {
-        	isTau = kTRUE;
-        	break;
-              }
-            }
-	    if(isTau == kTRUE) fSmurfTree.jet4McId_ += 10;
-          }
 
-	  fSmurfTree.dPhiLep3Jet1_  = dPhiLep3Jet1_ ;
-	  fSmurfTree.dRLep3Jet1_    = dRLep3Jet1_;
-	  fSmurfTree.jetLowBtag_    = nMaxMediumBTagJet;
-	  fSmurfTree.nSoftMuons_    = DirtyMuons->GetEntries();
-          fSmurfTree.Q_ 	    = Q;
-          fSmurfTree.id1_	    = id1;
-          fSmurfTree.x1_	    = x1;
-          fSmurfTree.pdf1_	    = pdf1;
-          fSmurfTree.id2_	    = id2;
-          fSmurfTree.x2_	    = x2;
-          fSmurfTree.pdf2_	    = pdf2;
-          fSmurfTree.processId_     = processId;
-          fSmurfTree.higgsPt_       = higgsPt;
+	  fSmurfTree.jetLowBtag_ = nMaxMediumBTagJet;
+	  fSmurfTree.nSoftMuons_ = DirtyMuons->GetEntries();
+          fSmurfTree.higgsPt_    = higgsPt;
 	  if(DirtyMuons->GetEntries() > 0) fSmurfTree.quadlep_ = DirtyMuons->At(0)->Mom();
 	  else                             fSmurfTree.quadlep_ = null;
 	}
 	fSmurfTree.info_.SetNameTitle("SmurfV7 selection, dilepton events","Summer11 samples");
-	fSmurfTree.tree_->Fill();
+	if(fSaveAll == kFALSE) fSmurfTree.tree_->Fill();
       }
 
       //******************************************************************************************
@@ -1554,6 +1486,8 @@ void HwwMakeNtupleMod::Process()
       for(UInt_t i=0; i<sortedJets.size(); i++) delete sortedJets[i];
       for(UInt_t i=0; i<sortedJetsAll.size(); i++) delete sortedJetsAll[i];
     } // Preselection requirements
+
+    if(fSaveAll == kTRUE) fSmurfTree.tree_->Fill();
 
     //********************************************************************************************
     //Delete / Cleanup
@@ -1599,7 +1533,8 @@ void HwwMakeNtupleMod::SlaveBegin()
   if(fIsData == kFALSE){
     ReqBranch(fMCEvInfoName         , fMCEventInfo);
     ReqBranch(Names::gkPileupInfoBrn, fPileupInfos); 
-    ReqBranch(Names::gkMCPartBrn    , fParticles); 
+    ReqBranch(Names::gkMCPartBrn    , fParticles);
+    ReqEventObject(fGenJetName      , fGenJets, kTRUE);
 
     //Load DY NNLO KFactor
     if ( fDecay == 6 || fDecay == 7 || fDecay == 8 ) {
@@ -1769,8 +1704,8 @@ void HwwMakeNtupleMod::PFTrkSel(const ParticleOArr *leptons, const Vertex *verte
       } // loop over leptons
     } // high pt forward PF candidates
 
-    if(pf->HasTrk() && pf->Pt() > 5 && TMath::Abs(pf->BestTrk()->DzCorrected(*vertex)) < 0.10 &&
-                                       TMath::Abs(pf->BestTrk()->D0Corrected(*vertex)) < 0.02 &&
+    if(pf->BestTrk() && pf->Pt() > 5 && TMath::Abs(pf->BestTrk()->DzCorrected(*vertex)) < 0.10 &&
+                                        TMath::Abs(pf->BestTrk()->D0Corrected(*vertex)) < 0.02 &&
       (pf->PFType() == PFCandidate::eElectron || pf->PFType() == PFCandidate::eMuon || pf->Pt() > 20)) {
       Double_t dRMin = 999.;
       for (UInt_t nl = 0; nl<leptons->GetEntries(); nl++) {
@@ -1782,7 +1717,7 @@ void HwwMakeNtupleMod::PFTrkSel(const ParticleOArr *leptons, const Vertex *verte
 	for (UInt_t j=0; j<fPFCandidates->GetEntries(); j++) {
           const PFCandidate *pfcone = fPFCandidates->At(j);
           if(pf == pfcone) continue;
-          if(!pfcone->HasTrk()) continue;
+          if(!pfcone->BestTrk()) continue;
 	  if(TMath::Abs(pfcone->BestTrk()->DzCorrected(*vertex)) < 0.10){
             Double_t dr = MathUtils::DeltaR(pfcone->Mom(), pf->Mom());
             if ( dr <  0.30 && dr >= 0.01 ) ptSum += pfcone->Pt();

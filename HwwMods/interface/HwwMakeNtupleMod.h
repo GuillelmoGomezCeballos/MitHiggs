@@ -20,6 +20,7 @@
 #include "MitAna/DataTree/interface/CollectionsFwd.h"
 #include "MitAna/DataTree/interface/MCEventInfo.h"
 #include "MitAna/DataTree/interface/PileupInfoCol.h"
+#include "MitAna/DataTree/interface/GenJetCol.h"
 #include <TFile.h>
 #include "TH2D.h"
 #include "Smurf/Core/SmurfTree.h"
@@ -76,6 +77,7 @@ namespace mithep
       void   SetMVAElVersion(int i)                       { fMVAElVersion                 = i;    }
       void   SetMVAMuVersion(int i)                       { fMVAMuVersion                 = i;    }
       void   SetRhoType(RhoUtilities::RhoType type)       { fTheRhoType                   = type; };
+      void   SetSaveAll(bool b)                           { fSaveAll                      = b; };
       void   SetAddLheWeights(bool b)                     { fAddLheWeights                = b; };
 
     protected:
@@ -101,6 +103,7 @@ namespace mithep
       const             MCEventInfo *fMCEventInfo;     //!event info branch pointer
       TString           fCaloJetName0;
       TString           fPFJetName0;
+      TString           fGenJetName;
       const CaloJetCol  *fCaloJet0;
       const PFJetCol    *fPFJet0;
       const MuonCol     *fMuons;                       // Muon branch
@@ -110,6 +113,7 @@ namespace mithep
       const VertexCol   *fVertices;                    // Vertices branches
       const PileupInfoCol *fPileupInfos;               // PileupInfo branch
       const MCParticleCol *fParticles;                 // MC particle collection handle
+      const GenJetCol  *fGenJets;
       Double_t          fDecay;                        // code for MC process ID
       Double_t          fJetScaleSyst;
       Bool_t            fIsData;                       //=true then it does nothing (def=0)
@@ -135,6 +139,7 @@ namespace mithep
       Bool_t            fAddLheWeights;
       TString           fLheWeightsName;
       const LheWeightCol *fLheWeights;
+      Bool_t            fSaveAll;
       Int_t             fNEventsSelected;              //selected events
 
       PUReweighting    *fPUReweighting;  
