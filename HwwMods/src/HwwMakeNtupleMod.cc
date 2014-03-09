@@ -168,6 +168,8 @@ void HwwMakeNtupleMod::Process()
     GenBosons = GetObjThisEvt<MCParticleCol>(ModNames::gkMCBosonsName);    
   }
 
+  Int_t processId = 0;
+
   if(fIsData == kFALSE) {
     if(GenLeptons){
       if(GenLeptons->GetEntries() >= 1) {
@@ -215,105 +217,105 @@ void HwwMakeNtupleMod::Process()
     fSmurfTree.id2_    = fMCEventInfo->Id2();
     fSmurfTree.x2_     = fMCEventInfo->X2();
     fSmurfTree.pdf2_   = fMCEventInfo->Pdf2();
-    Int_t    processId = fMCEventInfo->ProcessId();
-
-    if     (fDecay == 110) { fSmurfTree.dstype_ = SmurfTree::hww110; processId = 10010; }
-    else if(fDecay == 115) { fSmurfTree.dstype_ = SmurfTree::hww115; processId = 10010; }
-    else if(fDecay == 118) { fSmurfTree.dstype_ = SmurfTree::hww118; processId = 10010; }
-    else if(fDecay == 120) { fSmurfTree.dstype_ = SmurfTree::hww120; processId = 10010; }
-    else if(fDecay == 122) { fSmurfTree.dstype_ = SmurfTree::hww122; processId = 10010; }
-    else if(fDecay == 124) { fSmurfTree.dstype_ = SmurfTree::hww124; processId = 10010; }
-    else if(fDecay == 125) { fSmurfTree.dstype_ = SmurfTree::hww125; processId = 10010; }
-    else if(fDecay == 126) { fSmurfTree.dstype_ = SmurfTree::hww126; processId = 10010; }
-    else if(fDecay == 128) { fSmurfTree.dstype_ = SmurfTree::hww128; processId = 10010; }
-    else if(fDecay == 130) { fSmurfTree.dstype_ = SmurfTree::hww130; processId = 10010; }
-    else if(fDecay == 135) { fSmurfTree.dstype_ = SmurfTree::hww135; processId = 10010; }
-    else if(fDecay == 140) { fSmurfTree.dstype_ = SmurfTree::hww140; processId = 10010; }
-    else if(fDecay == 145) { fSmurfTree.dstype_ = SmurfTree::hww145; processId = 10010; }
-    else if(fDecay == 150) { fSmurfTree.dstype_ = SmurfTree::hww150; processId = 10010; }
-    else if(fDecay == 155) { fSmurfTree.dstype_ = SmurfTree::hww155; processId = 10010; }
-    else if(fDecay == 160) { fSmurfTree.dstype_ = SmurfTree::hww160; processId = 10010; }
-    else if(fDecay == 170) { fSmurfTree.dstype_ = SmurfTree::hww170; processId = 10010; }
-    else if(fDecay == 180) { fSmurfTree.dstype_ = SmurfTree::hww180; processId = 10010; }
-    else if(fDecay == 190) { fSmurfTree.dstype_ = SmurfTree::hww190; processId = 10010; }
-    else if(fDecay == 200) { fSmurfTree.dstype_ = SmurfTree::hww200; processId = 10010; }
-    else if(fDecay == 210) { fSmurfTree.dstype_ = SmurfTree::hww210; processId = 10010; }
-    else if(fDecay == 220) { fSmurfTree.dstype_ = SmurfTree::hww220; processId = 10010; }
-    else if(fDecay == 230) { fSmurfTree.dstype_ = SmurfTree::hww230; processId = 10010; }
-    else if(fDecay == 250) { fSmurfTree.dstype_ = SmurfTree::hww250; processId = 10010; }
-    else if(fDecay == 300) { fSmurfTree.dstype_ = SmurfTree::hww300; processId = 10010; }
-    else if(fDecay == 350) { fSmurfTree.dstype_ = SmurfTree::hww350; processId = 10010; }
-    else if(fDecay == 400) { fSmurfTree.dstype_ = SmurfTree::hww400; processId = 10010; }
-    else if(fDecay == 450) { fSmurfTree.dstype_ = SmurfTree::hww450; processId = 10010; }
-    else if(fDecay == 500) { fSmurfTree.dstype_ = SmurfTree::hww500; processId = 10010; }
-    else if(fDecay == 550) { fSmurfTree.dstype_ = SmurfTree::hww550; processId = 10010; }
-    else if(fDecay == 600) { fSmurfTree.dstype_ = SmurfTree::hww600; processId = 10010; }
-    else if(fDecay == 700) { fSmurfTree.dstype_ = SmurfTree::hww700; processId = 10010; }
-    else if(fDecay == 800) { fSmurfTree.dstype_ = SmurfTree::hww800; processId = 10010; }
-    else if(fDecay == 900) { fSmurfTree.dstype_ = SmurfTree::hww900; processId = 10010; }
-    else if(fDecay ==1000) { fSmurfTree.dstype_ = SmurfTree::hww1000;processId = 10010; }
-
-    else if(fDecay == 1110){ fSmurfTree.dstype_ = SmurfTree::vbfhww110; processId = 10001; }
-    else if(fDecay == 1115){ fSmurfTree.dstype_ = SmurfTree::vbfhww115; processId = 10001; }
-    else if(fDecay == 1118){ fSmurfTree.dstype_ = SmurfTree::vbfhww118; processId = 10001; }
-    else if(fDecay == 1120){ fSmurfTree.dstype_ = SmurfTree::vbfhww120; processId = 10001; }
-    else if(fDecay == 1122){ fSmurfTree.dstype_ = SmurfTree::vbfhww122; processId = 10001; }
-    else if(fDecay == 1124){ fSmurfTree.dstype_ = SmurfTree::vbfhww124; processId = 10001; }
-    else if(fDecay == 1125){ fSmurfTree.dstype_ = SmurfTree::vbfhww125; processId = 10001; }
-    else if(fDecay == 1126){ fSmurfTree.dstype_ = SmurfTree::vbfhww126; processId = 10001; }
-    else if(fDecay == 1128){ fSmurfTree.dstype_ = SmurfTree::vbfhww128; processId = 10001; }
-    else if(fDecay == 1130){ fSmurfTree.dstype_ = SmurfTree::vbfhww130; processId = 10001; }
-    else if(fDecay == 1135){ fSmurfTree.dstype_ = SmurfTree::vbfhww135; processId = 10001; }
-    else if(fDecay == 1140){ fSmurfTree.dstype_ = SmurfTree::vbfhww140; processId = 10001; }
-    else if(fDecay == 1145){ fSmurfTree.dstype_ = SmurfTree::vbfhww145; processId = 10001; }
-    else if(fDecay == 1150){ fSmurfTree.dstype_ = SmurfTree::vbfhww150; processId = 10001; }
-    else if(fDecay == 1155){ fSmurfTree.dstype_ = SmurfTree::vbfhww155; processId = 10001; }
-    else if(fDecay == 1160){ fSmurfTree.dstype_ = SmurfTree::vbfhww160; processId = 10001; }
-    else if(fDecay == 1170){ fSmurfTree.dstype_ = SmurfTree::vbfhww170; processId = 10001; }
-    else if(fDecay == 1180){ fSmurfTree.dstype_ = SmurfTree::vbfhww180; processId = 10001; }
-    else if(fDecay == 1190){ fSmurfTree.dstype_ = SmurfTree::vbfhww190; processId = 10001; }
-    else if(fDecay == 1200){ fSmurfTree.dstype_ = SmurfTree::vbfhww200; processId = 10001; }
-    else if(fDecay == 1210){ fSmurfTree.dstype_ = SmurfTree::vbfhww210; processId = 10001; }
-    else if(fDecay == 1220){ fSmurfTree.dstype_ = SmurfTree::vbfhww220; processId = 10001; }
-    else if(fDecay == 1230){ fSmurfTree.dstype_ = SmurfTree::vbfhww230; processId = 10001; }
-    else if(fDecay == 1250){ fSmurfTree.dstype_ = SmurfTree::vbfhww250; processId = 10001; }
-    else if(fDecay == 1300){ fSmurfTree.dstype_ = SmurfTree::vbfhww300; processId = 10001; }
-    else if(fDecay == 1350){ fSmurfTree.dstype_ = SmurfTree::vbfhww350; processId = 10001; }
-    else if(fDecay == 1400){ fSmurfTree.dstype_ = SmurfTree::vbfhww400; processId = 10001; }
-    else if(fDecay == 1450){ fSmurfTree.dstype_ = SmurfTree::vbfhww450; processId = 10001; }
-    else if(fDecay == 1500){ fSmurfTree.dstype_ = SmurfTree::vbfhww500; processId = 10001; }
-    else if(fDecay == 1550){ fSmurfTree.dstype_ = SmurfTree::vbfhww550; processId = 10001; }
-    else if(fDecay == 1600){ fSmurfTree.dstype_ = SmurfTree::vbfhww600; processId = 10001; }
-    else if(fDecay == 1700){ fSmurfTree.dstype_ = SmurfTree::vbfhww700; processId = 10001; }
-    else if(fDecay == 1800){ fSmurfTree.dstype_ = SmurfTree::vbfhww800; processId = 10001; }
-    else if(fDecay == 1900){ fSmurfTree.dstype_ = SmurfTree::vbfhww900; processId = 10001; }
-    else if(fDecay == 2000){ fSmurfTree.dstype_ = SmurfTree::vbfhww1000;processId = 10001; }
-
-    else if(fDecay == 3)					 fSmurfTree.dstype_ = SmurfTree::wjets;
-    else if(fDecay == 5)					 fSmurfTree.dstype_ = SmurfTree::ttbar;
-    else if(fDecay == 6)					 fSmurfTree.dstype_ = SmurfTree::dymm;
-    else if(fDecay == 7)					 fSmurfTree.dstype_ = SmurfTree::dyee;
-    else if(fDecay == 8)					 fSmurfTree.dstype_ = SmurfTree::dytt;
-    else if(fDecay == 9)					 fSmurfTree.dstype_ = SmurfTree::dymm;
-    else if(fDecay == 11 || fDecay == 12 || fDecay == 13)	 fSmurfTree.dstype_ = SmurfTree::tw;
-    else if(fDecay == 10)					 fSmurfTree.dstype_ = SmurfTree::dyttDataDriven;
-    else if(fDecay == 27)					 fSmurfTree.dstype_ = SmurfTree::wz;
-    else if(fDecay == 28)					 fSmurfTree.dstype_ = SmurfTree::zz;
-    else if(fDecay == 29 || fDecay == 14)			 fSmurfTree.dstype_ = SmurfTree::qqww;
-    else if(fDecay == 30)					 fSmurfTree.dstype_ = SmurfTree::ggww;
-    else if(fDecay == 32)					 fSmurfTree.dstype_ = SmurfTree::qqwwPWG;
-    else if(fDecay == 33)					 fSmurfTree.dstype_ = SmurfTree::qqww2j;
-    else if(fDecay == 31)					 fSmurfTree.dstype_ = SmurfTree::ggzz;
-    else if(fDecay == 25)					 fSmurfTree.dstype_ = SmurfTree::www;
-    else if(fDecay == 17 || fDecay == 18 || fDecay == 19)	 fSmurfTree.dstype_ = SmurfTree::wgamma;
-    else if(fDecay == 20)					 fSmurfTree.dstype_ = SmurfTree::wgstar;
-    else if(fDecay == 15)					 fSmurfTree.dstype_ = SmurfTree::qcd;
-    else if(fIsData == kTRUE)					 fSmurfTree.dstype_ = SmurfTree::data;
-    else if(fDecay == 34)					 fSmurfTree.dstype_ = SmurfTree::wwewk;
-    else							 fSmurfTree.dstype_ = SmurfTree::other;
-
-    fSmurfTree.processId_ = processId;
+    processId          = fMCEventInfo->ProcessId();
   }
+
+  if	 (fDecay == 110) { fSmurfTree.dstype_ = SmurfTree::hww110; processId = 10010; }
+  else if(fDecay == 115) { fSmurfTree.dstype_ = SmurfTree::hww115; processId = 10010; }
+  else if(fDecay == 118) { fSmurfTree.dstype_ = SmurfTree::hww118; processId = 10010; }
+  else if(fDecay == 120) { fSmurfTree.dstype_ = SmurfTree::hww120; processId = 10010; }
+  else if(fDecay == 122) { fSmurfTree.dstype_ = SmurfTree::hww122; processId = 10010; }
+  else if(fDecay == 124) { fSmurfTree.dstype_ = SmurfTree::hww124; processId = 10010; }
+  else if(fDecay == 125) { fSmurfTree.dstype_ = SmurfTree::hww125; processId = 10010; }
+  else if(fDecay == 126) { fSmurfTree.dstype_ = SmurfTree::hww126; processId = 10010; }
+  else if(fDecay == 128) { fSmurfTree.dstype_ = SmurfTree::hww128; processId = 10010; }
+  else if(fDecay == 130) { fSmurfTree.dstype_ = SmurfTree::hww130; processId = 10010; }
+  else if(fDecay == 135) { fSmurfTree.dstype_ = SmurfTree::hww135; processId = 10010; }
+  else if(fDecay == 140) { fSmurfTree.dstype_ = SmurfTree::hww140; processId = 10010; }
+  else if(fDecay == 145) { fSmurfTree.dstype_ = SmurfTree::hww145; processId = 10010; }
+  else if(fDecay == 150) { fSmurfTree.dstype_ = SmurfTree::hww150; processId = 10010; }
+  else if(fDecay == 155) { fSmurfTree.dstype_ = SmurfTree::hww155; processId = 10010; }
+  else if(fDecay == 160) { fSmurfTree.dstype_ = SmurfTree::hww160; processId = 10010; }
+  else if(fDecay == 170) { fSmurfTree.dstype_ = SmurfTree::hww170; processId = 10010; }
+  else if(fDecay == 180) { fSmurfTree.dstype_ = SmurfTree::hww180; processId = 10010; }
+  else if(fDecay == 190) { fSmurfTree.dstype_ = SmurfTree::hww190; processId = 10010; }
+  else if(fDecay == 200) { fSmurfTree.dstype_ = SmurfTree::hww200; processId = 10010; }
+  else if(fDecay == 210) { fSmurfTree.dstype_ = SmurfTree::hww210; processId = 10010; }
+  else if(fDecay == 220) { fSmurfTree.dstype_ = SmurfTree::hww220; processId = 10010; }
+  else if(fDecay == 230) { fSmurfTree.dstype_ = SmurfTree::hww230; processId = 10010; }
+  else if(fDecay == 250) { fSmurfTree.dstype_ = SmurfTree::hww250; processId = 10010; }
+  else if(fDecay == 300) { fSmurfTree.dstype_ = SmurfTree::hww300; processId = 10010; }
+  else if(fDecay == 350) { fSmurfTree.dstype_ = SmurfTree::hww350; processId = 10010; }
+  else if(fDecay == 400) { fSmurfTree.dstype_ = SmurfTree::hww400; processId = 10010; }
+  else if(fDecay == 450) { fSmurfTree.dstype_ = SmurfTree::hww450; processId = 10010; }
+  else if(fDecay == 500) { fSmurfTree.dstype_ = SmurfTree::hww500; processId = 10010; }
+  else if(fDecay == 550) { fSmurfTree.dstype_ = SmurfTree::hww550; processId = 10010; }
+  else if(fDecay == 600) { fSmurfTree.dstype_ = SmurfTree::hww600; processId = 10010; }
+  else if(fDecay == 700) { fSmurfTree.dstype_ = SmurfTree::hww700; processId = 10010; }
+  else if(fDecay == 800) { fSmurfTree.dstype_ = SmurfTree::hww800; processId = 10010; }
+  else if(fDecay == 900) { fSmurfTree.dstype_ = SmurfTree::hww900; processId = 10010; }
+  else if(fDecay ==1000) { fSmurfTree.dstype_ = SmurfTree::hww1000;processId = 10010; }
+
+  else if(fDecay == 1110){ fSmurfTree.dstype_ = SmurfTree::vbfhww110; processId = 10001; }
+  else if(fDecay == 1115){ fSmurfTree.dstype_ = SmurfTree::vbfhww115; processId = 10001; }
+  else if(fDecay == 1118){ fSmurfTree.dstype_ = SmurfTree::vbfhww118; processId = 10001; }
+  else if(fDecay == 1120){ fSmurfTree.dstype_ = SmurfTree::vbfhww120; processId = 10001; }
+  else if(fDecay == 1122){ fSmurfTree.dstype_ = SmurfTree::vbfhww122; processId = 10001; }
+  else if(fDecay == 1124){ fSmurfTree.dstype_ = SmurfTree::vbfhww124; processId = 10001; }
+  else if(fDecay == 1125){ fSmurfTree.dstype_ = SmurfTree::vbfhww125; processId = 10001; }
+  else if(fDecay == 1126){ fSmurfTree.dstype_ = SmurfTree::vbfhww126; processId = 10001; }
+  else if(fDecay == 1128){ fSmurfTree.dstype_ = SmurfTree::vbfhww128; processId = 10001; }
+  else if(fDecay == 1130){ fSmurfTree.dstype_ = SmurfTree::vbfhww130; processId = 10001; }
+  else if(fDecay == 1135){ fSmurfTree.dstype_ = SmurfTree::vbfhww135; processId = 10001; }
+  else if(fDecay == 1140){ fSmurfTree.dstype_ = SmurfTree::vbfhww140; processId = 10001; }
+  else if(fDecay == 1145){ fSmurfTree.dstype_ = SmurfTree::vbfhww145; processId = 10001; }
+  else if(fDecay == 1150){ fSmurfTree.dstype_ = SmurfTree::vbfhww150; processId = 10001; }
+  else if(fDecay == 1155){ fSmurfTree.dstype_ = SmurfTree::vbfhww155; processId = 10001; }
+  else if(fDecay == 1160){ fSmurfTree.dstype_ = SmurfTree::vbfhww160; processId = 10001; }
+  else if(fDecay == 1170){ fSmurfTree.dstype_ = SmurfTree::vbfhww170; processId = 10001; }
+  else if(fDecay == 1180){ fSmurfTree.dstype_ = SmurfTree::vbfhww180; processId = 10001; }
+  else if(fDecay == 1190){ fSmurfTree.dstype_ = SmurfTree::vbfhww190; processId = 10001; }
+  else if(fDecay == 1200){ fSmurfTree.dstype_ = SmurfTree::vbfhww200; processId = 10001; }
+  else if(fDecay == 1210){ fSmurfTree.dstype_ = SmurfTree::vbfhww210; processId = 10001; }
+  else if(fDecay == 1220){ fSmurfTree.dstype_ = SmurfTree::vbfhww220; processId = 10001; }
+  else if(fDecay == 1230){ fSmurfTree.dstype_ = SmurfTree::vbfhww230; processId = 10001; }
+  else if(fDecay == 1250){ fSmurfTree.dstype_ = SmurfTree::vbfhww250; processId = 10001; }
+  else if(fDecay == 1300){ fSmurfTree.dstype_ = SmurfTree::vbfhww300; processId = 10001; }
+  else if(fDecay == 1350){ fSmurfTree.dstype_ = SmurfTree::vbfhww350; processId = 10001; }
+  else if(fDecay == 1400){ fSmurfTree.dstype_ = SmurfTree::vbfhww400; processId = 10001; }
+  else if(fDecay == 1450){ fSmurfTree.dstype_ = SmurfTree::vbfhww450; processId = 10001; }
+  else if(fDecay == 1500){ fSmurfTree.dstype_ = SmurfTree::vbfhww500; processId = 10001; }
+  else if(fDecay == 1550){ fSmurfTree.dstype_ = SmurfTree::vbfhww550; processId = 10001; }
+  else if(fDecay == 1600){ fSmurfTree.dstype_ = SmurfTree::vbfhww600; processId = 10001; }
+  else if(fDecay == 1700){ fSmurfTree.dstype_ = SmurfTree::vbfhww700; processId = 10001; }
+  else if(fDecay == 1800){ fSmurfTree.dstype_ = SmurfTree::vbfhww800; processId = 10001; }
+  else if(fDecay == 1900){ fSmurfTree.dstype_ = SmurfTree::vbfhww900; processId = 10001; }
+  else if(fDecay == 2000){ fSmurfTree.dstype_ = SmurfTree::vbfhww1000;processId = 10001; }
+
+  else if(fDecay == 3)  				       fSmurfTree.dstype_ = SmurfTree::wjets;
+  else if(fDecay == 5)  				       fSmurfTree.dstype_ = SmurfTree::ttbar;
+  else if(fDecay == 6)  				       fSmurfTree.dstype_ = SmurfTree::dymm;
+  else if(fDecay == 7)  				       fSmurfTree.dstype_ = SmurfTree::dyee;
+  else if(fDecay == 8)  				       fSmurfTree.dstype_ = SmurfTree::dytt;
+  else if(fDecay == 9)  				       fSmurfTree.dstype_ = SmurfTree::dymm;
+  else if(fDecay == 11 || fDecay == 12 || fDecay == 13)        fSmurfTree.dstype_ = SmurfTree::tw;
+  else if(fDecay == 10) 				       fSmurfTree.dstype_ = SmurfTree::dyttDataDriven;
+  else if(fDecay == 27) 				       fSmurfTree.dstype_ = SmurfTree::wz;
+  else if(fDecay == 28) 				       fSmurfTree.dstype_ = SmurfTree::zz;
+  else if(fDecay == 29 || fDecay == 14) 		       fSmurfTree.dstype_ = SmurfTree::qqww;
+  else if(fDecay == 30) 				       fSmurfTree.dstype_ = SmurfTree::ggww;
+  else if(fDecay == 32) 				       fSmurfTree.dstype_ = SmurfTree::qqwwPWG;
+  else if(fDecay == 33) 				       fSmurfTree.dstype_ = SmurfTree::qqww2j;
+  else if(fDecay == 31) 				       fSmurfTree.dstype_ = SmurfTree::ggzz;
+  else if(fDecay == 25) 				       fSmurfTree.dstype_ = SmurfTree::www;
+  else if(fDecay == 17 || fDecay == 18 || fDecay == 19)        fSmurfTree.dstype_ = SmurfTree::wgamma;
+  else if(fDecay == 20) 				       fSmurfTree.dstype_ = SmurfTree::wgstar;
+  else if(fDecay == 15) 				       fSmurfTree.dstype_ = SmurfTree::qcd;
+  else if(fIsData == kTRUE)				       fSmurfTree.dstype_ = SmurfTree::data;
+  else if(fDecay == 34) 				       fSmurfTree.dstype_ = SmurfTree::wwewk;
+  else  						       fSmurfTree.dstype_ = SmurfTree::other;
+
+  fSmurfTree.processId_ = processId;
 
   //***********************************************************************************************
   //Import Fakeable object Collections
@@ -721,7 +723,7 @@ void HwwMakeNtupleMod::Process()
 
         MCParticle *gen = 0;
         //Match to Leptons
-	if(GenLeptons){
+	if(GenLeptons && fIsData == kFALSE){
           for (UInt_t j=0; j<GenLeptons->GetEntries(); j++) {
             if(MathUtils::DeltaR(GenLeptons->At(j)->Mom(), leptons->At(i)->Mom()) < 0.10) {
               gen = GenLeptons->At(j);
@@ -748,7 +750,7 @@ void HwwMakeNtupleMod::Process()
 	}
 
         //Match to Hadronic Taus
-        if (!gen && GenTaus) {
+        if (!gen && GenTaus && fIsData == kFALSE) {
           for (UInt_t l=0; l<GenTaus->GetEntries(); ++l) {
             if (MathUtils::DeltaR(GenTaus->At(l)->Mom(), leptons->At(i)->Mom()) < 0.3 ) {
               gen = GenTaus->At(l);
@@ -758,7 +760,7 @@ void HwwMakeNtupleMod::Process()
         }
 
         //Match to Prompt Photons
-        if (!gen && GenPhotons) {
+        if (!gen && GenPhotons && fIsData == kFALSE) {
           for (UInt_t l=0; l < GenPhotons->GetEntries(); l++) {  
             if (GenPhotons->At(l)->Pt() > 10.0 &&  MathUtils::DeltaR(GenPhotons->At(l)->Mom(), leptons->At(i)->Mom()) < 0.3 ) {
         
@@ -806,7 +808,7 @@ void HwwMakeNtupleMod::Process()
           }
         }
         
-        if(gen) {
+        if(gen && fIsData == kFALSE) {
           leptonGenType[i] =  gen->PdgId();
           if     (gen->HasMother(MCParticle::kW) && gen->Charge() > 0) leptonMotherGenType[i] =  24;
           else if(gen->HasMother(MCParticle::kW) && gen->Charge() < 0) leptonMotherGenType[i] = -24;
