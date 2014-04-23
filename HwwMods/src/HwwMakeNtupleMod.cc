@@ -220,6 +220,39 @@ void HwwMakeNtupleMod::Process()
     processId          = fMCEventInfo->ProcessId();
   }
 
+  if(fIsData == kTRUE) {
+    if (NNLOWeight) {
+      fSmurfTree.scale1fb_    = NNLOWeight->GetVal();
+    } else {
+      fSmurfTree.scale1fb_    = 1.0;
+    }
+    fSmurfTree.npu_	    = 0;
+    fSmurfTree.npuPlusOne_  = 0;
+    fSmurfTree.npuMinusOne_ = 0;
+  } else {	    
+    if (NNLOWeight) {
+      fSmurfTree.scale1fb_    = NNLOWeight->GetVal() * 1000.0;
+    } else {
+      fSmurfTree.scale1fb_    = 1000.0;
+    }
+    Double_t NPU	  = 0;
+    Double_t NPU_PlusOne  = 0;
+    Double_t NPU_MinusOne = 0;
+    //Double_t NPU_Observed = 0;
+    for (UInt_t k=0; k < fPileupInfos->GetEntries() ; ++k) {
+      if (fPileupInfos->At(k)->GetBunchCrossing() ==  0) NPU	      = fPileupInfos->At(k)->GetPU_NumMean();
+      if (fPileupInfos->At(k)->GetBunchCrossing() ==  1) NPU_PlusOne  = fPileupInfos->At(k)->GetPU_NumInteractions();
+      if (fPileupInfos->At(k)->GetBunchCrossing() == -1) NPU_MinusOne = fPileupInfos->At(k)->GetPU_NumInteractions();
+      //if (fPileupInfos->At(k)->GetBunchCrossing() ==  0) NPU_Observed = fPileupInfos->At(k)->GetPU_NumInteractions();
+    }
+    fSmurfTree.npu_	    = NPU;
+    fSmurfTree.npuPlusOne_  = NPU_PlusOne;
+    fSmurfTree.npuMinusOne_ = NPU_MinusOne;
+    if (fDoPileupReweighting) {
+      fSmurfTree.scale1fb_ *= fPUReweighting->reweightOOT(NPU, NPU_PlusOne);
+    }
+  }
+
   if	 (fDecay == 110) { fSmurfTree.dstype_ = SmurfTree::hww110; processId = 10010; }
   else if(fDecay == 115) { fSmurfTree.dstype_ = SmurfTree::hww115; processId = 10010; }
   else if(fDecay == 118) { fSmurfTree.dstype_ = SmurfTree::hww118; processId = 10010; }
@@ -1252,37 +1285,6 @@ void HwwMakeNtupleMod::Process()
 	fSmurfTree.run_	          = fEventHeader->RunNum();
 	fSmurfTree.lumi_	  = fEventHeader->LumiSec();
 	fSmurfTree.nvtx_	  = fVertices->GetEntries();
-	if(fIsData == kTRUE) {
-          if (NNLOWeight) {
-            fSmurfTree.scale1fb_    = NNLOWeight->GetVal();
-          } else {
-            fSmurfTree.scale1fb_    = 1.0;
-          }
-          fSmurfTree.npu_         = 0;
-          fSmurfTree.npuPlusOne_  = 0;
-	} else {          
-          if (NNLOWeight) {
-            fSmurfTree.scale1fb_    = NNLOWeight->GetVal() * 1000.0;
-          } else {
-            fSmurfTree.scale1fb_    = 1000.0;
-          }
-          Double_t NPU          = 0;
-          Double_t NPU_PlusOne  = 0;
-          Double_t NPU_MinusOne = 0;
-	  //Double_t NPU_Observed = 0;
-          for (UInt_t k=0; k < fPileupInfos->GetEntries() ; ++k) {
-            if (fPileupInfos->At(k)->GetBunchCrossing() ==  0) NPU          = fPileupInfos->At(k)->GetPU_NumMean();
-            if (fPileupInfos->At(k)->GetBunchCrossing() ==  1) NPU_PlusOne  = fPileupInfos->At(k)->GetPU_NumInteractions();
-            if (fPileupInfos->At(k)->GetBunchCrossing() == -1) NPU_MinusOne = fPileupInfos->At(k)->GetPU_NumInteractions();
-	    //if (fPileupInfos->At(k)->GetBunchCrossing() ==  0) NPU_Observed = fPileupInfos->At(k)->GetPU_NumInteractions();
-          }
-          fSmurfTree.npu_         = NPU;
-          fSmurfTree.npuPlusOne_  = NPU_PlusOne;
-          fSmurfTree.npuMinusOne_ = NPU_MinusOne;
-          if (fDoPileupReweighting) {
-            fSmurfTree.scale1fb_ *= fPUReweighting->reweightOOT(NPU, NPU_PlusOne);
-          }
-	}
 	fSmurfTree.met_	          = pfMet->Pt();
 	fSmurfTree.metPhi_        = pfMet->Phi();
 	fSmurfTree.sumet_         = pfMet->SumEt();
