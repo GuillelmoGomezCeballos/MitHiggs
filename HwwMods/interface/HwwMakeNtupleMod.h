@@ -71,6 +71,8 @@ namespace mithep
       void   SetMuonFakeName(const char *name)  	  { fMuonFakeName    	          = name; }
       void   SetElectronFakeName(const char *name)  	  { fElectronFakeName	          = name; }
       void   SetLeptonFakeName(const char *name)  	  { fLeptonFakeName  	          = name; }
+      void   SetPhotonName(const char *name)  	          { fPhotonName                   = name; }
+      void   SetPhotonFakeName(const char *name)  	  { fPhotonFakeName               = name; }
       void   SetIntRadius(Double_t dr)                    { fIntRadius                    = dr;   }
       void   SetIs42x(Bool_t b)                           { fIs42x                        = b;    }
       void   SetCorrectedJetsName(TString s)              { fCorrectedJetsName            = s;    }   
@@ -126,6 +128,8 @@ namespace mithep
       TString           fMuonFakeName;
       TString           fElectronFakeName;
       TString           fLeptonFakeName;
+      TString           fPhotonName;
+      TString           fPhotonFakeName;
       Double_t          fIntRadius;
       Bool_t            fIs42x;
       ElectronIDMVA    *fElectronIDMVA;

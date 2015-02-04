@@ -77,6 +77,8 @@ HwwMakeNtupleMod::HwwMakeNtupleMod(const char *name, const char *title) :
   fMuonFakeName("random"),
   fElectronFakeName("random"),
   fLeptonFakeName("random"),
+  fPhotonName("random"),
+  fPhotonFakeName("random"),
   fIntRadius(0.0),
   fIs42x(kFALSE),
   fElectronIDMVA(0),
@@ -139,7 +141,8 @@ void HwwMakeNtupleMod::Process()
   fVertices = GetObjThisEvt<VertexOArr>(fVertexName);
   ElectronOArr *OriginalCleanElectrons  = GetObjThisEvt<ElectronOArr>(ModNames::gkCleanElectronsName);
   MuonOArr  *OriginalCleanMuons         = GetObjThisEvt<MuonOArr>(ModNames::gkCleanMuonsName);
-  PhotonOArr  *OriginalCleanPhotons     = GetObjThisEvt<PhotonOArr>(ModNames::gkCleanPhotonsName);
+  PhotonOArr  *OriginalCleanPhotons     = GetObjThisEvt<PhotonOArr>(fPhotonName);
+  PhotonOArr  *OriginalFakePhotons      = GetObjThisEvt<PhotonOArr>(fPhotonFakeName);
   PFTauOArr  *CleanTaus                 = GetObjThisEvt<PFTauOArr>(fPFTauName);
 
   JetOArr *OriginalCleanJetsNoPtCut     = GetObjThisEvt<JetOArr>(fCleanJetsNoPtCutName);
@@ -155,6 +158,10 @@ void HwwMakeNtupleMod::Process()
   MCParticleOArr *GenTaus      = 0;
   MCParticleOArr *GenPhotons   = 0;
   ObjArray<MCParticle> *GenLeptonsAndTaus = new ObjArray<MCParticle>;
+  MCParticleOArr *GenPartLeptons0 = 0;
+  MCParticleOArr *GenPartLeptons1 = 0;
+  MCParticleOArr *GenPartLeptons2 = 0;
+  MCParticleOArr *GenPartLeptons3 = 0;
   MCParticleCol *GenBosons   = 0;    
   if(fIsData == kFALSE){
     GenLeptons   = GetObjThisEvt<MCParticleOArr>(ModNames::gkMCLeptonsName);
@@ -166,11 +173,31 @@ void HwwMakeNtupleMod::Process()
     for (UInt_t i=0; i<GenTaus->GetEntries(); i++)
       GenLeptonsAndTaus->Add(GenTaus->At(i));
     GenBosons = GetObjThisEvt<MCParticleCol>(ModNames::gkMCBosonsName);    
+    GenPartLeptons0 = GetObjThisEvt<MCParticleOArr>("GenPartLeptons0");
+    GenPartLeptons1 = GetObjThisEvt<MCParticleOArr>("GenPartLeptons1");
+    GenPartLeptons2 = GetObjThisEvt<MCParticleOArr>("GenPartLeptons2");
+    GenPartLeptons3 = GetObjThisEvt<MCParticleOArr>("GenPartLeptons3");
   }
 
   Int_t processId = 0;
 
   if(fIsData == kFALSE) {
+    // GenPartLeptons commented out, needs different SmurfTree format
+    fSmurfTree.auxVar0_ = 0;
+    if(GenPartLeptons0 && GenPartLeptons0->GetEntries() >= 1 && GenPartLeptons0->At(0)->Is(MCParticle::kTau)) fSmurfTree.auxVar0_++;
+    if(GenPartLeptons2 && GenPartLeptons2->GetEntries() >= 1 && GenPartLeptons2->At(0)->Is(MCParticle::kTau)) fSmurfTree.auxVar0_++;
+
+    CompositeParticle fourLepton;
+    if(GenPartLeptons0 && GenPartLeptons0->GetEntries() >= 1) fourLepton.AddDaughter(GenPartLeptons0->At(0));
+    if(GenPartLeptons1 && GenPartLeptons1->GetEntries() >= 1) fourLepton.AddDaughter(GenPartLeptons1->At(0));
+    if(GenPartLeptons2 && GenPartLeptons2->GetEntries() >= 1) fourLepton.AddDaughter(GenPartLeptons2->At(0));
+    if(GenPartLeptons3 && GenPartLeptons3->GetEntries() >= 1) fourLepton.AddDaughter(GenPartLeptons3->At(0));
+    fSmurfTree.jet3McId_ = fourLepton.Pt();
+    //if(GenPartLeptons0 && GenPartLeptons0->GetEntries() >= 1) fSmurfTree.genPart1_ = GenPartLeptons0->At(0)->Mom();
+    //if(GenPartLeptons1 && GenPartLeptons1->GetEntries() >= 1) fSmurfTree.genPart2_ = GenPartLeptons1->At(0)->Mom();
+    //if(GenPartLeptons2 && GenPartLeptons2->GetEntries() >= 1) fSmurfTree.genPart3_ = GenPartLeptons2->At(0)->Mom();
+    //if(GenPartLeptons3 && GenPartLeptons3->GetEntries() >= 1) fSmurfTree.genPart4_ = GenPartLeptons3->At(0)->Mom();
+
     if(GenLeptons){
       if(GenLeptons->GetEntries() >= 1) {
         fSmurfTree.genlep1_     = GenLeptons->At(0)->Mom();
@@ -189,10 +216,16 @@ void HwwMakeNtupleMod::Process()
       Double_t nGenJet[3] = {-1, -1, -1};
       for(UInt_t ngj=0; ngj<fGenJets->GetEntries(); ngj++){
         Double_t dRMin = 999.;
-        if(GenLeptons){
-          for(UInt_t ngl=0; ngl<GenLeptons->GetEntries(); ngl++){
-            if(MathUtils::DeltaR(fGenJets->At(ngj)->Mom(), GenLeptons->At(ngl)->Mom()) < dRMin)
-              dRMin = MathUtils::DeltaR(fGenJets->At(ngj)->Mom(), GenLeptons->At(ngl)->Mom());
+        //if(GenLeptons){
+        //  for(UInt_t ngl=0; ngl<GenLeptons->GetEntries(); ngl++){
+        //    if(MathUtils::DeltaR(fGenJets->At(ngj)->Mom(), GenLeptons->At(ngl)->Mom()) < dRMin)
+        //      dRMin = MathUtils::DeltaR(fGenJets->At(ngj)->Mom(), GenLeptons->At(ngl)->Mom());
+        //  }
+        //}
+        if(GenLeptonsAndTaus){
+          for(UInt_t ngl=0; ngl<GenLeptonsAndTaus->GetEntries(); ngl++){
+            if(MathUtils::DeltaR(fGenJets->At(ngj)->Mom(), GenLeptonsAndTaus->At(ngl)->Mom()) < dRMin)
+              dRMin = MathUtils::DeltaR(fGenJets->At(ngj)->Mom(), GenLeptonsAndTaus->At(ngl)->Mom());
           }
         }
         if(dRMin < 0.3) continue;
@@ -357,6 +390,21 @@ void HwwMakeNtupleMod::Process()
   ElectronOArr *CleanElectronsFakeable = GetObjThisEvt<ElectronOArr>(fElectronFakeName);
   ParticleOArr *leptonsFakeable        = GetObjThisEvt<ParticleOArr>(fLeptonFakeName);
 
+  ParticleOArr *photonsOnlyFake = new ObjArray<Particle>;
+  if(fFakeRatePredictionType == 3 || fFakeRatePredictionType == 4){
+    for(UInt_t i=0; i<OriginalFakePhotons->GetEntries(); i++){
+      Bool_t isOnlyFake = kTRUE;
+      for(UInt_t j=0; j<OriginalCleanPhotons->GetEntries(); j++) {
+	if(OriginalCleanPhotons->At(j) == OriginalFakePhotons->At(i)) {
+  	  isOnlyFake = kFALSE;
+          break;
+	}
+      }
+      if(isOnlyFake == kTRUE) photonsOnlyFake->Add(OriginalFakePhotons->At(i));
+    }
+    photonsOnlyFake->Sort();
+  }
+
   ParticleOArr *leptonsOnlyFake = new ObjArray<Particle>;
   MuonOArr *CleanMuonsOnlyFake = new ObjArray<Muon>;
   ElectronOArr *CleanElectronsOnlyFake = new ObjArray<Electron>;
@@ -414,10 +462,10 @@ void HwwMakeNtupleMod::Process()
     ObjArray<Particle> *leptons = new ObjArray<Particle>;
     MuonOArr *CleanMuons = new ObjArray<Muon>;
     ElectronOArr *CleanElectrons = new ObjArray<Electron>;
-    if(fFakeRatePredictionType == 0 || fFakeRatePredictionType == 1 || fFakeRatePredictionType == 3){
+    if     (fFakeRatePredictionType == 0 || fFakeRatePredictionType == 1 || fFakeRatePredictionType == 3){
       for (UInt_t j=0;j<OriginalLeptons->GetEntries() ; j++) {
         leptons->Add(OriginalLeptons->At(j));
-        leptons->At(leptons->GetEntries()-1)->SetIsFakeable(kFALSE);
+        leptons->At(leptons->GetEntries()-1)->SetDoFakeable(0);
       }
 
       for (UInt_t j=0;j<OriginalCleanMuons->GetEntries() ; j++) {
@@ -428,10 +476,33 @@ void HwwMakeNtupleMod::Process()
         CleanElectrons->Add(OriginalCleanElectrons->At(j));
       }
     }
+    else if(fFakeRatePredictionType == 4){
+      for (UInt_t j=0;j<OriginalLeptons->GetEntries() ; j++) {
+        if((OriginalCleanPhotons->GetEntries() >= 1                                       && MathUtils::DeltaR(OriginalCleanPhotons->At(0)->Mom(), OriginalLeptons->At(j)->Mom()) > 0.3) ||
+	   (OriginalCleanPhotons->GetEntries() == 0 && photonsOnlyFake->GetEntries() >= 1 && MathUtils::DeltaR(photonsOnlyFake     ->At(0)->Mom(), OriginalLeptons->At(j)->Mom()) > 0.3)) {
+	  leptons->Add(OriginalLeptons->At(j));
+	  leptons->At(leptons->GetEntries()-1)->SetDoFakeable(0);
+        }
+      }
+
+      for (UInt_t j=0;j<OriginalCleanMuons->GetEntries() ; j++) {
+        if((OriginalCleanPhotons->GetEntries() >= 1                                       && MathUtils::DeltaR(OriginalCleanPhotons->At(0)->Mom(), OriginalCleanMuons->At(j)->Mom()) > 0.3) ||
+	   (OriginalCleanPhotons->GetEntries() == 0 && photonsOnlyFake->GetEntries() >= 1 && MathUtils::DeltaR(photonsOnlyFake     ->At(0)->Mom(), OriginalCleanMuons->At(j)->Mom()) > 0.3)) {
+          CleanMuons->Add(OriginalCleanMuons->At(j));
+        }
+      }
+
+      for (UInt_t j=0;j<OriginalCleanElectrons->GetEntries() ; j++) {
+        if((OriginalCleanPhotons->GetEntries() >= 1                                       && MathUtils::DeltaR(OriginalCleanPhotons->At(0)->Mom(), OriginalCleanElectrons->At(j)->Mom()) > 0.3) ||
+	   (OriginalCleanPhotons->GetEntries() == 0 && photonsOnlyFake->GetEntries() >= 1 && MathUtils::DeltaR(photonsOnlyFake     ->At(0)->Mom(), OriginalCleanElectrons->At(j)->Mom()) > 0.3)) {
+          CleanElectrons->Add(OriginalCleanElectrons->At(j));
+        }
+      }
+    }
 
     if (fFakeRatePredictionType == 1) {
       leptons->Add(leptonsOnlyFake->At(in));
-      leptons->At(leptons->GetEntries()-1)->SetIsFakeable(kTRUE);
+      leptons->At(leptons->GetEntries()-1)->SetDoFakeable(1);
       if (leptonsOnlyFake->At(in)->ObjType() == kMuon) {
         for (UInt_t j=0;j<CleanMuonsOnlyFake->GetEntries() ; j++) {
           if (MathUtils::DeltaR(leptonsOnlyFake->At(in)->Mom(), CleanMuonsOnlyFake->At(j)->Mom()) < 0.05) {
@@ -453,7 +524,7 @@ void HwwMakeNtupleMod::Process()
     if (fFakeRatePredictionType == 2) {
       for (UInt_t j=0;j<leptonsOnlyFake->GetEntries() ; j++) {
         leptons->Add(leptonsOnlyFake->At(j));
-        leptons->At(leptons->GetEntries()-1)->SetIsFakeable(kTRUE);
+        leptons->At(leptons->GetEntries()-1)->SetDoFakeable(1);
       	if (leptonsOnlyFake->At(j)->ObjType() == kMuon) {
       	  for (UInt_t k=0;k<CleanMuonsOnlyFake->GetEntries() ; k++) {
       	    if (MathUtils::DeltaR(leptonsOnlyFake->At(j)->Mom(), CleanMuonsOnlyFake->At(k)->Mom()) < 0.05) {
@@ -473,9 +544,13 @@ void HwwMakeNtupleMod::Process()
       }
     }
 
-    if(fFakeRatePredictionType == 3 && OriginalCleanPhotons->GetEntries() >= 1){
+    if     ((fFakeRatePredictionType == 3 || fFakeRatePredictionType == 4) && OriginalCleanPhotons->GetEntries() >= 1){
       leptons->Add(OriginalCleanPhotons->At(0));
-      leptons->At(leptons->GetEntries()-1)->SetIsFakeable(kTRUE);
+      leptons->At(leptons->GetEntries()-1)->SetDoFakeable(1);
+    }
+    else if((fFakeRatePredictionType == 3 || fFakeRatePredictionType == 4) && photonsOnlyFake->GetEntries() >= 1){
+      leptons->Add(photonsOnlyFake->At(0));
+      leptons->At(leptons->GetEntries()-1)->SetDoFakeable(2);
     }
 
     leptons->Sort();
@@ -515,16 +590,23 @@ void HwwMakeNtupleMod::Process()
       	}
       }
     }
-    else if (fFakeRatePredictionType == 3 && OriginalCleanPhotons->GetEntries() >= 1) {
+    else if ((fFakeRatePredictionType == 3 || fFakeRatePredictionType == 4) && OriginalCleanPhotons->GetEntries() >= 1) {
       for (UInt_t j=0;j<OriginalCleanJetsNoPtCut->GetEntries() ; j++) {
         if(MathUtils::DeltaR(OriginalCleanPhotons->At(0)->Mom(), OriginalCleanJetsNoPtCut->At(j)->Mom()) > 0.3) {
 	  CleanJetsNoPtCut->Add(OriginalCleanJetsNoPtCut->At(j));
         }
       }
     }
+    else if ((fFakeRatePredictionType == 3 || fFakeRatePredictionType == 4) && photonsOnlyFake->GetEntries() >= 1) {
+      for (UInt_t j=0;j<OriginalCleanJetsNoPtCut->GetEntries() ; j++) {
+        if(MathUtils::DeltaR(photonsOnlyFake->At(0)->Mom(), OriginalCleanJetsNoPtCut->At(j)->Mom()) > 0.3) {
+	  CleanJetsNoPtCut->Add(OriginalCleanJetsNoPtCut->At(j));
+        }
+      }
+    }
     CleanJetsNoPtCut->Sort(); 
 
-    if(leptons->GetEntries() != (CleanMuons->GetEntries() + CleanElectrons->GetEntries()) && fFakeRatePredictionType != 3) assert(1);
+    if(leptons->GetEntries() != (CleanMuons->GetEntries() + CleanElectrons->GetEntries()) && fFakeRatePredictionType != 3 && fFakeRatePredictionType != 4) assert(1);
 
     //*********************************************************************************************
     //Initialize
@@ -593,8 +675,13 @@ void HwwMakeNtupleMod::Process()
     // New MET
     PFMet* pfMet = new PFMet();
 
+    CompositeParticle preselDilepton;
+    if(leptons->GetEntries() >= 1) preselDilepton.AddDaughter(leptons->At(0));
+    if(leptons->GetEntries() >= 2) preselDilepton.AddDaughter(leptons->At(1));
+    Int_t nElectrons = 0; for (UInt_t j=0;j<leptons->GetEntries() ; j++) if(leptons->At(j)->ObjType() == kElectron) nElectrons++;
+
     // Preselection requirements
-    if ( (!fFillPhotonTemplate && fFakeRatePredictionType != 3 && leptons->GetEntries() >= 2 && leptons->At(0)->Pt() > 20 &&
+    if ( (!fFillPhotonTemplate && fFakeRatePredictionType != 3 && fFakeRatePredictionType != 4 && leptons->GetEntries() >= 2 && leptons->At(0)->Pt() > 20 &&
 	   (
 	    (leptons->GetEntries() == 2)
 	    ||
@@ -602,9 +689,19 @@ void HwwMakeNtupleMod::Process()
 	    )
 	 )
 	   || 
-	 (!fFillPhotonTemplate && fFakeRatePredictionType == 3 && leptons->GetEntries() >= 2 && leptons->At(0)->Pt() > 20 && OriginalCleanPhotons->GetEntries() >= 1 && 
+	 (!fFillPhotonTemplate && fFakeRatePredictionType == 3 && leptons->GetEntries() >= 2 && leptons->At(0)->Pt() > 20 && 
+	   (OriginalCleanPhotons->GetEntries() >= 1 || photonsOnlyFake->GetEntries() >= 1) && 
 	   (
-	    (leptons->GetEntries() == 2 && fIsData == kFALSE)
+	    (leptons->GetEntries() == 2)
+	    ||
+	    (leptons->GetEntries() == 3)
+	    )
+	 )
+	   || 
+	 (!fFillPhotonTemplate && fFakeRatePredictionType == 4 && leptons->GetEntries() >= 2 && leptons->At(0)->Pt() > 30 && nElectrons >= 1 && preselDilepton.Mass() > 40 && preselDilepton.Mass() < 140 && 
+	   (OriginalCleanPhotons->GetEntries() >= 1 || photonsOnlyFake->GetEntries() >= 1) && 
+	   (
+	    (leptons->GetEntries() == 2)
 	    ||
 	    (leptons->GetEntries() == 3)
 	    )
@@ -612,7 +709,7 @@ void HwwMakeNtupleMod::Process()
 	   ||
 	 (fFillPhotonTemplate && (OriginalCleanPhotons->GetEntries() == 1 || (OriginalCleanPhotons->GetEntries() >= 1 && OriginalCleanPhotons->At(1)->Pt() < 30))
 	  && CleanMuons->GetEntries() == 0 && CleanElectrons->GetEntries() == 0)
-	 ) {	
+	 ) {
 
       // *****************
       // Fill electron MVA
@@ -723,9 +820,13 @@ void HwwMakeNtupleMod::Process()
       leptonsDz.clear();
 
       double photonV[4] = {0, 0, 0, 0};
-      if(fFakeRatePredictionType == 3 && OriginalCleanPhotons->GetEntries() >= 1){
+      if     ((fFakeRatePredictionType == 3 || fFakeRatePredictionType == 4) && OriginalCleanPhotons->GetEntries() >= 1){
         photonV[0] = OriginalCleanPhotons->At(0)->Px(); photonV[1] = OriginalCleanPhotons->At(0)->Py();
         photonV[2] = OriginalCleanPhotons->At(0)->Pz(); photonV[3] = OriginalCleanPhotons->At(0)->E();
+      }
+      else if((fFakeRatePredictionType == 3 || fFakeRatePredictionType == 4) && photonsOnlyFake->GetEntries() >= 1){
+        photonV[0] = photonsOnlyFake->At(0)->Px(); photonV[1] = photonsOnlyFake->At(0)->Py();
+        photonV[2] = photonsOnlyFake->At(0)->Pz(); photonV[3] = photonsOnlyFake->At(0)->E();
       }
       GenericParticle *thePhoton = new GenericParticle(photonV[0],photonV[1],photonV[2],photonV[3]);
       MetTools metTools(CleanMuons, CleanElectrons, fPFCandidates, fVertices->At(0), 0.1, 8.0, 5.0, fIntRadius,thePhoton);
@@ -750,7 +851,6 @@ void HwwMakeNtupleMod::Process()
 
       UInt_t leptonGenType[3]       = {0, 0, 0};
       UInt_t leptonMotherGenType[3] = {0, 0, 0};
-      UInt_t leptonGenIsSeen[3]     = {0, 0, 0}; // consider only the first three gen leptons for now
       // look for real W/Z -> leptons
       for(UInt_t i=0; i<leptons->GetEntries(); i++) {
 
@@ -760,25 +860,8 @@ void HwwMakeNtupleMod::Process()
           for (UInt_t j=0; j<GenLeptons->GetEntries(); j++) {
             if(MathUtils::DeltaR(GenLeptons->At(j)->Mom(), leptons->At(i)->Mom()) < 0.10) {
               gen = GenLeptons->At(j);
-	      if(j < 3) leptonGenIsSeen[j] = 1;
               break;
             }
-          }
-	  if     (leptonGenIsSeen[0] == 0 && GenLeptons->GetEntries() >= 1){
-            fSmurfTree.auxVar0_ = GenLeptons->At(0)->Pt();
-            //fSmurfTree.auxVar1_ = GenLeptons->At(0)->Eta();
-          }
-	  else if(leptonGenIsSeen[1] == 0 && GenLeptons->GetEntries() >= 2){
-            fSmurfTree.auxVar0_ = GenLeptons->At(1)->Pt();
-            //fSmurfTree.auxVar1_ = GenLeptons->At(1)->Eta();
-          }
-	  else if(leptonGenIsSeen[2] == 0 && GenLeptons->GetEntries() >= 3){
-            fSmurfTree.auxVar0_ = GenLeptons->At(2)->Pt();
-            //fSmurfTree.auxVar1_ = GenLeptons->At(2)->Eta();
-          }
-	  else {
-            fSmurfTree.auxVar0_ = 0.0;
-            //fSmurfTree.auxVar1_ = 0.0;
           }
 	}
 
@@ -795,8 +878,9 @@ void HwwMakeNtupleMod::Process()
         //Match to Prompt Photons
         if (!gen && GenPhotons && fIsData == kFALSE) {
           for (UInt_t l=0; l < GenPhotons->GetEntries(); l++) {  
-            if (GenPhotons->At(l)->Pt() > 10.0 &&  MathUtils::DeltaR(GenPhotons->At(l)->Mom(), leptons->At(i)->Mom()) < 0.3 ) {
-        
+            if (GenPhotons->At(l)->Pt() > 15.0 &&  MathUtils::DeltaR(GenPhotons->At(l)->Mom(), leptons->At(i)->Mom()) < 0.3 ) {
+              leptonGenType[i] = 8;
+
               //ISR Photon
               if ( (GenPhotons->At(l)->Mother() && GenPhotons->At(l)->Mother()->IsParton())
                    || (GenPhotons->At(l)->Mother()->AbsPdgId() == 22 
@@ -847,7 +931,7 @@ void HwwMakeNtupleMod::Process()
           else if(gen->HasMother(MCParticle::kW) && gen->Charge() < 0) leptonMotherGenType[i] = -24;
           else if(gen->HasMother(MCParticle::kZ))                      leptonMotherGenType[i] = 23;
           else                                                         leptonMotherGenType[i] = gen->DistinctMother()->PdgId();
-        } else {
+        } else if(leptonGenType[i] != 8){
           leptonGenType[i] =   9;
         }
       }
@@ -1200,28 +1284,32 @@ void HwwMakeNtupleMod::Process()
       if(leptons->GetEntries() >= 2 && leptons->At(1)->Pt() <= 10) PreselPtCut = kFALSE;
       if(dilepton->Mass() <= 12.0) PreselPtCut = kFALSE;
       if(PreselPtCut == kTRUE) fSmurfTree.cuts_ |= SmurfTree::BaseLine;
-      if(fFakeRatePredictionType != 3){
-        if     (leptons->GetEntries() >= 1 && leptons->At(0)->IsFakeable() == kFALSE) fSmurfTree.cuts_ |= SmurfTree::Lep1FullSelection;
+      if(fFakeRatePredictionType != 3 && fFakeRatePredictionType != 4){
+        if     (leptons->GetEntries() >= 1 && leptons->At(0)->DoFakeable() == 0     ) fSmurfTree.cuts_ |= SmurfTree::Lep1FullSelection;
         else if(leptons->GetEntries() >= 1 && leptons->At(0)->ObjType() == kMuon)     fSmurfTree.cuts_ |= SmurfTree::Lep1LooseMuV2;
         else if(leptons->GetEntries() >= 1 && leptons->At(0)->ObjType() == kElectron) fSmurfTree.cuts_ |= SmurfTree::Lep1LooseEleV4;
-        if     (leptons->GetEntries() >= 2 && leptons->At(1)->IsFakeable() == kFALSE) fSmurfTree.cuts_ |= SmurfTree::Lep2FullSelection;
+        if     (leptons->GetEntries() >= 2 && leptons->At(1)->DoFakeable() == 0     ) fSmurfTree.cuts_ |= SmurfTree::Lep2FullSelection;
         else if(leptons->GetEntries() >= 2 && leptons->At(1)->ObjType() == kMuon)     fSmurfTree.cuts_ |= SmurfTree::Lep2LooseMuV2;
         else if(leptons->GetEntries() >= 2 && leptons->At(1)->ObjType() == kElectron) fSmurfTree.cuts_ |= SmurfTree::Lep2LooseEleV4;
-        if     (leptons->GetEntries() >= 3 && leptons->At(2)->IsFakeable() == kFALSE) fSmurfTree.cuts_ |= SmurfTree::Lep3FullSelection;
+        if     (leptons->GetEntries() >= 3 && leptons->At(2)->DoFakeable() == 0     ) fSmurfTree.cuts_ |= SmurfTree::Lep3FullSelection;
         else if(leptons->GetEntries() >= 3 && leptons->At(2)->ObjType() == kMuon)     fSmurfTree.cuts_ |= SmurfTree::Lep3LooseMuV2;
         else if(leptons->GetEntries() >= 3 && leptons->At(2)->ObjType() == kElectron) fSmurfTree.cuts_ |= SmurfTree::Lep3LooseEleV4;
 
-        if     (leptons->GetEntries() >= 1 && leptons->At(0)->IsFakeable() == kTRUE && leptonsMVAPass[0] == 1) fSmurfTree.cuts_ |= SmurfTree::Lep1LooseEleV1;
-        if     (leptons->GetEntries() >= 2 && leptons->At(1)->IsFakeable() == kTRUE && leptonsMVAPass[1] == 1) fSmurfTree.cuts_ |= SmurfTree::Lep2LooseEleV1;
-        if     (leptons->GetEntries() >= 3 && leptons->At(2)->IsFakeable() == kTRUE && leptonsMVAPass[2] == 1) fSmurfTree.cuts_ |= SmurfTree::Lep3LooseEleV1;
+        if     (leptons->GetEntries() >= 1 && leptons->At(0)->DoFakeable() == 1     && leptonsMVAPass[0] == 1) fSmurfTree.cuts_ |= SmurfTree::Lep1LooseEleV1;
+        if     (leptons->GetEntries() >= 2 && leptons->At(1)->DoFakeable() == 1     && leptonsMVAPass[1] == 1) fSmurfTree.cuts_ |= SmurfTree::Lep2LooseEleV1;
+        if     (leptons->GetEntries() >= 3 && leptons->At(2)->DoFakeable() == 1     && leptonsMVAPass[2] == 1) fSmurfTree.cuts_ |= SmurfTree::Lep3LooseEleV1;
       } else { // photons treated as fakeable objects
-        if     (leptons->GetEntries() >= 1 && leptons->At(0)->IsFakeable() == kFALSE) fSmurfTree.cuts_ |= SmurfTree::Lep1FullSelection;
-        if     (leptons->GetEntries() >= 2 && leptons->At(1)->IsFakeable() == kFALSE) fSmurfTree.cuts_ |= SmurfTree::Lep2FullSelection;
-        if     (leptons->GetEntries() >= 3 && leptons->At(2)->IsFakeable() == kFALSE) fSmurfTree.cuts_ |= SmurfTree::Lep3FullSelection;
+        if     (leptons->GetEntries() >= 1 && leptons->At(0)->DoFakeable() == 0     ) fSmurfTree.cuts_ |= SmurfTree::Lep1FullSelection;
+        if     (leptons->GetEntries() >= 2 && leptons->At(1)->DoFakeable() == 0     ) fSmurfTree.cuts_ |= SmurfTree::Lep2FullSelection;
+        if     (leptons->GetEntries() >= 3 && leptons->At(2)->DoFakeable() == 0     ) fSmurfTree.cuts_ |= SmurfTree::Lep3FullSelection;
 
-        if     (leptons->GetEntries() >= 1 && leptons->At(0)->IsFakeable() == kTRUE) fSmurfTree.cuts_ |= SmurfTree::Lep1LooseEleV2;
-        if     (leptons->GetEntries() >= 2 && leptons->At(1)->IsFakeable() == kTRUE) fSmurfTree.cuts_ |= SmurfTree::Lep2LooseEleV2;
-        if     (leptons->GetEntries() >= 3 && leptons->At(2)->IsFakeable() == kTRUE) fSmurfTree.cuts_ |= SmurfTree::Lep3LooseEleV2;
+        if     (leptons->GetEntries() >= 1 && leptons->At(0)->DoFakeable() == 1    ) fSmurfTree.cuts_ |= SmurfTree::Lep1LooseEleV2;
+        if     (leptons->GetEntries() >= 2 && leptons->At(1)->DoFakeable() == 1    ) fSmurfTree.cuts_ |= SmurfTree::Lep2LooseEleV2;
+        if     (leptons->GetEntries() >= 3 && leptons->At(2)->DoFakeable() == 1    ) fSmurfTree.cuts_ |= SmurfTree::Lep3LooseEleV2;
+
+        if     (leptons->GetEntries() >= 1 && leptons->At(0)->DoFakeable() == 2    ) fSmurfTree.cuts_ |= SmurfTree::Lep1LooseMuV1;
+        if     (leptons->GetEntries() >= 2 && leptons->At(1)->DoFakeable() == 2    ) fSmurfTree.cuts_ |= SmurfTree::Lep2LooseMuV1;
+        if     (leptons->GetEntries() >= 3 && leptons->At(2)->DoFakeable() == 2    ) fSmurfTree.cuts_ |= SmurfTree::Lep3LooseMuV1;
       }
 
       // full met selection
@@ -1293,8 +1381,8 @@ void HwwMakeNtupleMod::Process()
 	if (leptons->GetEntries() >= 1) {
 	  fSmurfTree.lep1_          = leptons->At(0)->Mom();
 	  fSmurfTree.lq1_           = (int)leptons->At(0)->Charge();
-	  if     (fSmurfTree.lq1_ == 0 && fFakeRatePredictionType == 3 && gRandom->Uniform() > 0.5) fSmurfTree.lq1_ = +1;
-	  else if(fSmurfTree.lq1_ == 0 && fFakeRatePredictionType == 3                            ) fSmurfTree.lq1_ = -1;
+	  if     (fSmurfTree.lq1_ == 0 && (fFakeRatePredictionType == 3 || fFakeRatePredictionType == 4) && gRandom->Uniform() > 0.5) fSmurfTree.lq1_ = +1;
+	  else if(fSmurfTree.lq1_ == 0 && (fFakeRatePredictionType == 3 || fFakeRatePredictionType == 4)                            ) fSmurfTree.lq1_ = -1;
 	  if     (leptons->At(0)->ObjType() == kMuon    ) fSmurfTree.lid1_ = 13;
 	  else if(leptons->At(0)->ObjType() == kElectron) fSmurfTree.lid1_ = 11;
 	  else if(leptons->At(0)->ObjType() == kPhoton  ) fSmurfTree.lid1_ = 11;
@@ -1307,8 +1395,8 @@ void HwwMakeNtupleMod::Process()
 	if (leptons->GetEntries() >= 2) {
 	  fSmurfTree.lep2_          = leptons->At(1)->Mom();
 	  fSmurfTree.lq2_           = (int)leptons->At(1)->Charge();
-	  if     (fSmurfTree.lq2_ == 0 && fFakeRatePredictionType == 3 && gRandom->Uniform() > 0.5) fSmurfTree.lq2_ = +1;
-	  else if(fSmurfTree.lq2_ == 0 && fFakeRatePredictionType == 3                            ) fSmurfTree.lq2_ = -1;
+	  if     (fSmurfTree.lq2_ == 0 && (fFakeRatePredictionType == 3 || fFakeRatePredictionType == 4) && gRandom->Uniform() > 0.5) fSmurfTree.lq2_ = +1;
+	  else if(fSmurfTree.lq2_ == 0 && (fFakeRatePredictionType == 3 || fFakeRatePredictionType == 4)			    ) fSmurfTree.lq2_ = -1;
 	  if     (leptons->At(1)->ObjType() == kMuon    ) fSmurfTree.lid2_ = 13;
 	  else if(leptons->At(1)->ObjType() == kElectron) fSmurfTree.lid2_ = 11;
 	  else if(leptons->At(1)->ObjType() == kPhoton  ) fSmurfTree.lid2_ = 11;
@@ -1430,12 +1518,12 @@ void HwwMakeNtupleMod::Process()
 
         if(fSmurfTree.lq1_ * fSmurfTree.lq2_ < 0) fSmurfTree.cuts_ |= SmurfTree::ChargeMatch; // q1*q2<0
 
-        if(fFillNtupleType <= 4){
+        if(fFillNtupleType <= 5){
 	  if(leptons->GetEntries() > 2) {
 	    fSmurfTree.lep3_	      = leptons->At(2)->Mom();
 	    fSmurfTree.lq3_	      = (int)leptons->At(2)->Charge();
-	    if     (fSmurfTree.lq3_ == 0 && fFakeRatePredictionType == 3 && gRandom->Uniform() > 0.5) fSmurfTree.lq3_ = +1;
-	    else if(fSmurfTree.lq3_ == 0 && fFakeRatePredictionType == 3                            ) fSmurfTree.lq3_ = -1;
+	    if     (fSmurfTree.lq3_ == 0 && (fFakeRatePredictionType == 3 || fFakeRatePredictionType == 4) && gRandom->Uniform() > 0.5) fSmurfTree.lq3_ = +1;
+	    else if(fSmurfTree.lq3_ == 0 && (fFakeRatePredictionType == 3 || fFakeRatePredictionType == 4)			      ) fSmurfTree.lq3_ = -1;
 	    if     (leptons->At(2)->ObjType() == kMuon    ) fSmurfTree.lid3_ = 13;
 	    else if(leptons->At(2)->ObjType() == kElectron) fSmurfTree.lid3_ = 11;
 	    else if(leptons->At(2)->ObjType() == kPhoton  ) fSmurfTree.lid3_ = 11;
@@ -1470,7 +1558,6 @@ void HwwMakeNtupleMod::Process()
 	  fSmurfTree.lep3McId_      = leptonGenType[2];
 	  fSmurfTree.lep3MotherMcId_= leptonMotherGenType[2];
 
-	  fSmurfTree.jet3McId_ = 0;
 	  fSmurfTree.jet4McId_ = 0;
 
 	  fSmurfTree.jetLowBtag_ = nMaxMediumBTagJet;
@@ -1511,6 +1598,7 @@ void HwwMakeNtupleMod::Process()
   delete CleanMuonsOnlyFake;
   delete CleanElectronsOnlyFake;
   delete GenLeptonsAndTaus;
+  delete photonsOnlyFake;
 }
 //--------------------------------------------------------------------------------------------------
 void HwwMakeNtupleMod::SlaveBegin()
